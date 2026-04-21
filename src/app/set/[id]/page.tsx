@@ -160,9 +160,12 @@ export default function SetPage({ params }: { params: Promise<{ id: string }> })
       <TopBar />
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-6xl mx-auto px-6 py-6 space-y-6">
-          {/* Breadcrumb */}
-          <div className="text-xs text-muted-foreground">
-            <Link href="/" className="hover:text-foreground">← Volver a sets</Link>
+          {/* Breadcrumb + export */}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="text-xs text-muted-foreground">
+              <Link href="/" className="hover:text-foreground">← Volver a sets</Link>
+            </div>
+            <ExportSetButton setId={set.id} />
           </div>
 
           {/* Hero */}
@@ -259,6 +262,69 @@ export default function SetPage({ params }: { params: Promise<{ id: string }> })
           )}
         </div>
       </main>
+    </div>
+  );
+}
+
+// ═══════════════════ EXPORT BUTTON ═══════════════════
+
+function ExportSetButton({ setId }: { setId: string }) {
+  const [exporting, setExporting] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleExport = async () => {
+    setExporting(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/content-sets/${setId}/export`, { method: "POST" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(body.error || `Export falló (${res.status})`);
+        return;
+      }
+      const cd = res.headers.get("content-disposition") || "";
+      const fnMatch = /filename="?([^"]+)"?/.exec(cd);
+      const filename = fnMatch?.[1] || `set-${setId.slice(0, 8)}.zip`;
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      setError((e as Error).message || "network error");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      {error && (
+        <span className="text-[11px] text-destructive">{error}</span>
+      )}
+      <Button
+        onClick={handleExport}
+        disabled={exporting}
+        variant="accent"
+        size="sm"
+        className="gap-2"
+      >
+        {exporting ? (
+          <>
+            <span className="inline-block w-3.5 h-3.5 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin" />
+            Exportando…
+          </>
+        ) : (
+          <>
+            <Download className="h-4 w-4" />
+            Descargar set completo (ZIP)
+          </>
+        )}
+      </Button>
     </div>
   );
 }

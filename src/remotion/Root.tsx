@@ -55,7 +55,7 @@ export const RemotionRoot: React.FC = () => {
       {/* ══ EPM · Social ══ */}
       <Folder name="EPM-Social">
         <Composition
-          id="EPM_TikTok"
+          id="EPM-TikTok"
           component={TikTokVideo}
           durationInFrames={270}
           fps={30}
@@ -68,7 +68,7 @@ export const RemotionRoot: React.FC = () => {
           }}
         />
         <Composition
-          id="EPM_InstagramReel"
+          id="EPM-InstagramReel"
           component={InstagramReel}
           durationInFrames={240}
           fps={30}
@@ -81,7 +81,7 @@ export const RemotionRoot: React.FC = () => {
           }}
         />
         <Composition
-          id="EPM_YouTubeShort"
+          id="EPM-YouTubeShort"
           component={YouTubeShort}
           durationInFrames={300}
           fps={30}
@@ -97,7 +97,7 @@ export const RemotionRoot: React.FC = () => {
       {/* ══ EPM · Content ══ */}
       <Folder name="EPM-Content">
         <Composition
-          id="EPM_Presentation"
+          id="EPM-Presentation"
           component={Presentation}
           durationInFrames={450}
           fps={30}
@@ -112,7 +112,7 @@ export const RemotionRoot: React.FC = () => {
           }}
         />
         <Composition
-          id="EPM_Testimonial"
+          id="EPM-Testimonial"
           component={Testimonial}
           durationInFrames={180}
           fps={30}
@@ -129,7 +129,7 @@ export const RemotionRoot: React.FC = () => {
       {/* ══ EPM · Promo ══ */}
       <Folder name="EPM-Promo">
         <Composition
-          id="EPM_Announcement"
+          id="EPM-Announcement"
           component={Announcement}
           durationInFrames={300}
           fps={30}
@@ -143,7 +143,7 @@ export const RemotionRoot: React.FC = () => {
           }}
         />
         <Composition
-          id="EPM_BeforeAfter"
+          id="EPM-BeforeAfter"
           component={BeforeAfterDemo}
           durationInFrames={180}
           fps={30}
@@ -151,7 +151,7 @@ export const RemotionRoot: React.FC = () => {
           height={1080}
         />
         <Composition
-          id="EPM_Showcase"
+          id="EPM-Showcase"
           component={ShowcaseComposition}
           durationInFrames={300}
           fps={30}
