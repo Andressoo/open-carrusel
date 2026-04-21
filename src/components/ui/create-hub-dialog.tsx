@@ -169,103 +169,9 @@ const FORMATS: Format[] = [
     example: "Drop colección · 48h",
     bestFor: ["launch", "cashflow"],
   },
-  // Posts
-  {
-    id: "post-stat",
-    type: "post",
-    label: "Stat shock",
-    desc: "Un número impactante que detiene el scroll.",
-    aspectRatio: "1:1",
-    icon: <ImageIcon className="h-5 w-5" />,
-    example: "73% de restaurantes bajan precio midweek",
-    bestFor: ["autority", "capture"],
-  },
-  {
-    id: "post-quote",
-    type: "post",
-    label: "Quote · manifiesto",
-    desc: "Frase corta y punzante · alta shareability.",
-    aspectRatio: "1:1",
-    icon: <ImageIcon className="h-5 w-5" />,
-    example: '"No compres por comprar. Compra para ganar."',
-    bestFor: ["autority"],
-  },
-  {
-    id: "post-announce",
-    type: "post",
-    label: "Anuncio",
-    desc: "Lanzamiento · apertura · fecha especial.",
-    aspectRatio: "4:5",
-    icon: <ImageIcon className="h-5 w-5" />,
-    example: "Nueva sede · Abrimos el 15",
-    bestFor: ["launch"],
-  },
-  // Reels
-  {
-    id: "reel-hook",
-    type: "reel",
-    label: "Hook + CTA · 10s",
-    desc: "Gancho viral corto para TikTok/Reel/Short.",
-    duration: "10s",
-    aspectRatio: "9:16",
-    icon: <Zap className="h-5 w-5" />,
-    example: "Deja de rebajar. Empieza a diseñar.",
-    bestFor: ["capture", "validate"],
-  },
-  {
-    id: "reel-ba",
-    type: "reel",
-    label: "Antes/Después · 8s",
-    desc: "Transformación visual con wipe diagonal.",
-    duration: "8s",
-    aspectRatio: "9:16",
-    icon: <Repeat className="h-5 w-5" />,
-    example: "12% retención → 73% retención",
-    bestFor: ["autority", "capture"],
-  },
-  {
-    id: "reel-manifesto",
-    type: "reel",
-    label: "Manifiesto 60s",
-    desc: "Hook · panorama · casos · framework · CTA.",
-    duration: "60s",
-    aspectRatio: "9:16",
-    icon: <Film className="h-5 w-5" />,
-    example: "Por qué diseñar nuevas formas de vender",
-    bestFor: ["autority", "capture"],
-  },
-  // Stories
-  {
-    id: "story-poll",
-    type: "story",
-    label: "Poll binario",
-    desc: "Sí/No con framing que revela dolor · research gratis.",
-    aspectRatio: "9:16",
-    icon: <MessageCircleQuestion className="h-5 w-5" />,
-    example: '"¿Tu martes duele?"',
-    bestFor: ["validate"],
-  },
-  {
-    id: "story-quiz",
-    type: "story",
-    label: "Quiz educativo",
-    desc: "Pregunta framework · respuesta con explicación.",
-    aspectRatio: "9:16",
-    icon: <Sparkles className="h-5 w-5" />,
-    example: "¿Qué campaña lanzar si tenés horas valle?",
-    bestFor: ["autority", "validate"],
-  },
-  {
-    id: "story-countdown",
-    type: "story",
-    label: "Countdown · urgencia",
-    desc: "Drop · evento · launch con compromiso RSVP.",
-    aspectRatio: "9:16",
-    icon: <Timer className="h-5 w-5" />,
-    example: "Drop sábado 8pm · 72h",
-    bestFor: ["launch", "cashflow"],
-  },
 ];
+// Nota: reels e historias deshabilitados en el create flow · se editan
+// después desde /set/[id] si se necesita, pero el arranque es solo carrusel.
 
 // ════════════ COMPONENT ════════════
 
@@ -310,9 +216,9 @@ export function CreateHubDialog({ open, onClose }: Props) {
   const [topic, setTopic] = useState("");
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
-  /** Mode: 'set' = 1 Story + 1 Carousel + 1 Reel coherent line (default)
-             'single' = only the chosen format */
-  const [mode, setMode] = useState<"set" | "single">("set");
+  /** Always 'set' mode now · carousel-only output wrapped in a ContentSet
+     so Story / Reel can be added later from /set/[id] if desired. */
+  const mode = "set" as const;
   const [ctaKeyword, setCtaKeyword] = useState("");
 
   // ═══ Experiment fields (only surface in set mode) ═══
@@ -344,7 +250,6 @@ export function CreateHubDialog({ open, onClose }: Props) {
         setPossibleCaption("");
         setAnchorBrand("");
         setReferences([]);
-        setMode("set");
         setCreating(false);
         setAiIdea("");
         setAiLoading(false);
@@ -406,6 +311,34 @@ export function CreateHubDialog({ open, onClose }: Props) {
         }),
       });
       const set = await setRes.json();
+
+      // Auto-create the carousel piece and link it to the set
+      // (Story and Reel stay "pending" · se agregan después si se quieren)
+      try {
+        const cRes = await fetch("/api/carousels", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: aiBrief.name, aspectRatio: "4:5" }),
+        });
+        if (cRes.ok) {
+          const car = await cRes.json();
+          await fetch("/api/content-sets", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: set.id,
+              piece: "carousel",
+              updates: { id: car.id, status: "draft" },
+            }),
+          });
+          onClose();
+          router.push(`/carousel/${car.id}?set=${set.id}&ai=1`);
+          return;
+        }
+      } catch {
+        /* fallback to set view */
+      }
+
       onClose();
       router.push(`/set/${set.id}?ai=1`);
     } finally {
@@ -630,10 +563,10 @@ export function CreateHubDialog({ open, onClose }: Props) {
                   <div className="text-xs font-mono tracking-wider text-accent uppercase mb-1 flex items-center gap-1.5">
                     <Wand2 className="h-3 w-3" /> Modo AI
                   </div>
-                  <h3 className="text-lg font-semibold">Describí la idea · el AI arma el set</h3>
+                  <h3 className="text-lg font-semibold">Describí la idea · el AI arma el carrusel</h3>
                   <p className="text-sm text-muted-foreground mt-1 leading-snug">
-                    1 idea → Historia + Carrusel + Reel · captions · hashtags · estrategia de publicación.
-                    Hereda tu brand y memoria del proyecto.
+                    1 idea → Carrusel con hilo narrativo + captions + hashtags + estrategia de
+                    publicación. Hereda tu brand y memoria del proyecto.
                   </p>
                 </div>
                 <button
@@ -772,36 +705,21 @@ export function CreateHubDialog({ open, onClose }: Props) {
                 </div>
               )}
 
-              {/* Pieces preview */}
-              {aiBrief.pieces && (
-                <div className="grid grid-cols-3 gap-2">
-                  {aiBrief.pieces.story && (
-                    <div className="border border-border rounded-xl p-3 bg-background">
-                      <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1">📱 Historia</div>
-                      <div className="text-[11px] font-semibold mb-1">{aiBrief.pieces.story.dynamic}</div>
-                      <div className="text-xs leading-snug">{aiBrief.pieces.story.text}</div>
-                      {aiBrief.pieces.story.options && aiBrief.pieces.story.options.length > 0 && (
-                        <div className="mt-1.5 flex flex-wrap gap-1">
-                          {aiBrief.pieces.story.options.map((o, i) => (
-                            <span key={i} className="text-[10px] px-1.5 py-0.5 bg-muted/60 rounded">{o}</span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+              {/* Carousel piece preview · sólo carrusel */}
+              {aiBrief.pieces?.carousel && (
+                <div className="border border-accent/30 bg-accent/5 rounded-xl p-4">
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-accent mb-1.5">📇 Carrusel · qué va a crearse</div>
+                  <div className="text-sm font-semibold mb-1">
+                    {aiBrief.pieces.carousel.slides || 5} slides · 4:5
+                  </div>
+                  {aiBrief.pieces.carousel.hookText && (
+                    <div className="text-xs mb-2"><b>Hook slide 1:</b> {aiBrief.pieces.carousel.hookText}</div>
                   )}
-                  {aiBrief.pieces.carousel && (
-                    <div className="border border-border rounded-xl p-3 bg-background">
-                      <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1">📇 Carrusel</div>
-                      <div className="text-[11px] font-semibold mb-1">{aiBrief.pieces.carousel.slides || 5} slides</div>
-                      <div className="text-xs leading-snug line-clamp-3">{aiBrief.pieces.carousel.hookText}</div>
-                    </div>
+                  {aiBrief.pieces.carousel.insight && (
+                    <div className="text-xs mb-2"><b>Insight:</b> {aiBrief.pieces.carousel.insight}</div>
                   )}
-                  {aiBrief.pieces.reel && (
-                    <div className="border border-border rounded-xl p-3 bg-background">
-                      <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1">🎬 Reel</div>
-                      <div className="text-[11px] font-semibold mb-1">{aiBrief.pieces.reel.template} · {aiBrief.pieces.reel.duration}s</div>
-                      <div className="text-xs leading-snug line-clamp-3">{aiBrief.pieces.reel.hook}</div>
-                    </div>
+                  {aiBrief.pieces.carousel.ctaText && (
+                    <div className="text-xs"><b>CTA:</b> {aiBrief.pieces.carousel.ctaText}</div>
                   )}
                 </div>
               )}
@@ -921,64 +839,27 @@ export function CreateHubDialog({ open, onClose }: Props) {
                 </div>
               </div>
 
-              {/* Mode toggle · SET (default) vs SINGLE */}
-              <div className="border border-border rounded-xl p-1 bg-muted/30 flex gap-1">
-                <button
-                  onClick={() => setMode("set")}
-                  className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
-                    mode === "set"
-                      ? "bg-accent text-accent-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Set completo
-                  <span className="text-[10px] font-mono opacity-70">
-                    3 piezas coherentes
-                  </span>
-                </button>
-                <button
-                  onClick={() => setMode("single")}
-                  className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                    mode === "single"
-                      ? "bg-accent text-accent-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  Pieza única
-                </button>
-              </div>
-              {mode === "set" && (
-                <div className="border border-accent/30 bg-accent/5 rounded-xl p-3 flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-accent/15 grid place-items-center shrink-0">
-                    <Sparkles className="h-4 w-4 text-accent" />
-                  </div>
-                  <div className="text-xs">
-                    <div className="font-semibold mb-1">1 idea = 3 piezas</div>
-                    <div className="text-muted-foreground leading-snug">
-                      Storu genera <b className="text-foreground">Historia + Carrusel + Reel</b>{" "}
-                      coherentes entre sí · mismo tema · mismo hook · misma CTA keyword ·
-                      misma paleta · hilo narrativo conectado.
-                    </div>
-                    <div className="text-muted-foreground mt-1.5 leading-snug">
-                      Elegí por dónde arrancar · las otras 2 quedan en{" "}
-                      <b className="text-foreground">pending</b> para completar cuando quieras.
-                    </div>
+              <div className="border border-accent/30 bg-accent/5 rounded-xl p-3 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-accent/15 grid place-items-center shrink-0">
+                  <Layers className="h-4 w-4 text-accent" />
+                </div>
+                <div className="text-xs">
+                  <div className="font-semibold mb-1">Solo carrusel</div>
+                  <div className="text-muted-foreground leading-snug">
+                    Generamos el <b className="text-foreground">carrusel</b> con
+                    brand + hilo narrativo. Historia y Reel los podés agregar
+                    después desde el set si querés.
                   </div>
                 </div>
-              )}
+              </div>
 
               <div>
                 <div className="text-xs font-mono tracking-wider text-muted-foreground uppercase mb-1">
                   Paso 2
                 </div>
-                <h3 className="text-lg font-semibold">
-                  {mode === "set" ? "¿Por dónde empezamos?" : "Elegí el formato"}
-                </h3>
+                <h3 className="text-lg font-semibold">Elegí el formato de carrusel</h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {mode === "set"
-                    ? "Cualquier pieza es buen punto de partida · las otras 2 se crean después."
-                    : "Recomendados primero · después todos los otros."}
+                  Recomendados para tu objetivo primero · después todos los otros.
                 </p>
               </div>
 
@@ -1104,8 +985,8 @@ export function CreateHubDialog({ open, onClose }: Props) {
                         className="w-full px-4 py-2.5 text-sm font-mono border border-border rounded-lg bg-surface/40 outline-none focus:border-accent focus:ring-1 focus:ring-accent/30 uppercase tracking-wider"
                       />
                       <div className="text-[11px] text-muted-foreground mt-1.5">
-                        La misma palabra va a aparecer en las 3 piezas · los seguidores
-                        comentan esta palabra y reciben auto-respuesta por DM.
+                        La palabra va en el último slide del carrusel ·
+                        los seguidores la comentan y reciben auto-respuesta por DM.
                       </div>
                     </div>
 
@@ -1249,65 +1130,25 @@ export function CreateHubDialog({ open, onClose }: Props) {
                     </div>
                     <div className="flex-1">
                       <div className="text-xs font-semibold mb-2">Qué va a pasar ahora</div>
-                      {mode === "set" ? (
-                        <div className="space-y-2">
-                          <div className="grid grid-cols-3 gap-1.5">
-                            {(["story", "carousel", "reel"] as const).map((t) => {
-                              const isPrimary = format.type === t || (format.type === "post" && t === "carousel");
-                              return (
-                                <div
-                                  key={t}
-                                  className={`rounded-lg p-2 text-[10px] text-center font-mono uppercase tracking-wider ${
-                                    isPrimary
-                                      ? "bg-accent text-accent-foreground font-bold"
-                                      : "bg-background border border-border text-muted-foreground"
-                                  }`}
-                                >
-                                  {t === "story" ? "📱" : t === "carousel" ? "📇" : "🎬"}{" "}
-                                  {t}
-                                  <div className="text-[9px] mt-0.5 opacity-75 normal-case">
-                                    {isPrimary ? "ahora" : "pending"}
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                          <ul className="text-xs text-muted-foreground space-y-0.5 leading-relaxed pt-1">
-                            <li>✓ Set coherente · misma idea · 3 piezas conectadas</li>
-                            <li>✓ AI hereda brand · colores · voice del proyecto</li>
-                            <li>
-                              ✓ Empezamos por el <b className="text-foreground">{format.type}</b> ·
-                              las otras 2 quedan listas para completar
-                            </li>
-                            {ctaKeyword && (
-                              <li>
-                                ✓ CTA uniforme:{" "}
-                                <code className="px-1.5 py-0.5 bg-surface rounded text-[10px] font-bold">
-                                  {ctaKeyword}
-                                </code>
-                              </li>
-                            )}
-                          </ul>
+                      <div className="space-y-2">
+                        <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-accent text-accent-foreground font-mono uppercase tracking-wider text-[11px] font-bold">
+                          📇 Carrusel · {format.aspectRatio || "4:5"}
                         </div>
-                      ) : (
-                        <ul className="text-xs text-muted-foreground space-y-1 leading-relaxed">
-                          <li>
-                            ✓ Creamos una pieza <b>{format.type}</b>{" "}
-                            {format.aspectRatio && (
-                              <span>
-                                en{" "}
-                                <code className="px-1 py-0.5 bg-surface rounded text-[10px]">
-                                  {format.aspectRatio}
-                                </code>
-                              </span>
-                            )}
-                          </li>
-                          <li>✓ AI tiene memoria de tu brand · colores · fuentes · voice</li>
-                          <li>✓ Abrimos el editor con el contexto de tu brief</li>
-                          <li>✓ Podés iterar con chat AI hasta que quede como querés</li>
-                          <li>✓ Export directo a imagen/video cuando esté listo</li>
+                        <ul className="text-xs text-muted-foreground space-y-0.5 leading-relaxed pt-1">
+                          <li>✓ Creamos el carrusel adentro de un nuevo set</li>
+                          <li>✓ AI hereda brand · colores · fuentes · voice del proyecto</li>
+                          <li>✓ Abre el editor con chat AI para iterar</li>
+                          <li>✓ Historia y Reel quedan pendientes · los agregás si querés</li>
+                          {ctaKeyword && (
+                            <li>
+                              ✓ CTA:{" "}
+                              <code className="px-1.5 py-0.5 bg-surface rounded text-[10px] font-bold">
+                                {ctaKeyword}
+                              </code>
+                            </li>
+                          )}
                         </ul>
-                      )}
+                      </div>
                     </div>
                   </div>
                 </div>

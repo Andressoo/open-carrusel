@@ -8,6 +8,13 @@ import {
   ViralManifesto60sSchema,
 } from "../lib/remotion/ViralManifesto60s";
 
+// Visual-effect reel styles
+import { GlitchIntro, GlitchIntroSchema } from "../lib/remotion/styles/GlitchIntro";
+import { StatDrop, StatDropSchema } from "../lib/remotion/styles/StatDrop";
+import { SplitScreen, SplitScreenSchema } from "../lib/remotion/styles/SplitScreen";
+import { Typewriter, TypewriterSchema } from "../lib/remotion/styles/Typewriter";
+import { PosterSlam, PosterSlamSchema } from "../lib/remotion/styles/PosterSlam";
+
 // Editor Pro Max templates (unified)
 import { TikTokVideo } from "../epm/templates/social/TikTokVideo";
 import { InstagramReel } from "../epm/templates/social/InstagramReel";
@@ -49,6 +56,55 @@ export const RemotionRoot: React.FC = () => {
           width={1080}
           height={1920}
           defaultProps={ViralManifesto60sSchema}
+        />
+      </Folder>
+
+      {/* ══ Visual-effect styles ══ */}
+      <Folder name="Styles">
+        <Composition
+          id="GlitchIntro"
+          component={GlitchIntro}
+          durationInFrames={300}
+          fps={30}
+          width={1080}
+          height={1920}
+          defaultProps={GlitchIntroSchema}
+        />
+        <Composition
+          id="StatDrop"
+          component={StatDrop}
+          durationInFrames={300}
+          fps={30}
+          width={1080}
+          height={1920}
+          defaultProps={StatDropSchema}
+        />
+        <Composition
+          id="SplitScreen"
+          component={SplitScreen}
+          durationInFrames={300}
+          fps={30}
+          width={1080}
+          height={1920}
+          defaultProps={SplitScreenSchema}
+        />
+        <Composition
+          id="Typewriter"
+          component={Typewriter}
+          durationInFrames={300}
+          fps={30}
+          width={1080}
+          height={1920}
+          defaultProps={TypewriterSchema}
+        />
+        <Composition
+          id="PosterSlam"
+          component={PosterSlam}
+          durationInFrames={300}
+          fps={30}
+          width={1080}
+          height={1920}
+          defaultProps={PosterSlamSchema}
         />
       </Folder>
 
