@@ -1,10 +1,10 @@
 import { Composition } from "remotion";
-import { TikTokHook, TikTokHookSchema } from "@/lib/remotion/TikTokHook";
-import { BeforeAfter, BeforeAfterSchema } from "@/lib/remotion/BeforeAfter";
+import { TikTokHook, TikTokHookSchema } from "../lib/remotion/TikTokHook";
+import { BeforeAfter, BeforeAfterSchema } from "../lib/remotion/BeforeAfter";
 import {
   ViralManifesto60s,
   ViralManifesto60sSchema,
-} from "@/lib/remotion/ViralManifesto60s";
+} from "../lib/remotion/ViralManifesto60s";
 
 export const RemotionRoot: React.FC = () => {
   return (
