@@ -384,9 +384,10 @@ export default function DashboardPage() {
                     (statusCounts.ready || 0) + (statusCounts.published || 0);
                   const pct = Math.round((readyCount / 3) * 100);
                   return (
-                    <div
+                    <Link
                       key={s.id}
-                      className="border border-border rounded-xl p-4 bg-surface/30 hover:border-accent/50 transition-all"
+                      href={`/set/${s.id}`}
+                      className="border border-border rounded-xl p-4 bg-surface/30 hover:border-accent/50 transition-all block"
                     >
                       <div className="flex items-start justify-between gap-2 mb-3">
                         <div className="flex-1 min-w-0">
@@ -462,7 +463,7 @@ export default function DashboardPage() {
                           );
                         })}
                       </div>
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
