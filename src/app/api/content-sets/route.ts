@@ -20,9 +20,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { topic, goal, archetype, name, ctaKeyword, anchorBrand, thread } =
-      body as Partial<ContentSet>;
+    const body = (await request.json()) as Partial<ContentSet>;
+    const { topic, goal, name } = body;
 
     if (!topic || !goal) {
       return NextResponse.json(
@@ -37,11 +36,21 @@ export async function POST(request: Request) {
       id: generateId(),
       topic,
       goal,
-      archetype,
+      archetype: body.archetype,
       name: name || topic,
-      thread,
-      ctaKeyword,
-      anchorBrand,
+      thread: body.thread,
+      ctaKeyword: body.ctaKeyword,
+      anchorBrand: body.anchorBrand,
+      experimentPurpose: body.experimentPurpose,
+      hypothesis: body.hypothesis,
+      kpis: body.kpis,
+      sceneDetails: body.sceneDetails,
+      paletteOverride: body.paletteOverride,
+      possibleCaptions: body.possibleCaptions,
+      hashtags: body.hashtags,
+      references: body.references,
+      publishDate: body.publishDate,
+      status: body.status || "draft",
       story: { id: null, type: "story", status: "pending" },
       carousel: { id: null, type: "carousel", status: "pending" },
       reel: { id: null, type: "reel", status: "pending" },

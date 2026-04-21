@@ -30,11 +30,26 @@ import type { BrandConfig } from "@/types/brand";
 
 type Project = { slug: string; name: string; icon?: string; description?: string };
 type Reel = { id: string; template: string; props: Record<string, unknown>; duration: number; aspectRatio: string; createdAt: string };
+type ContentSet = {
+  id: string;
+  topic: string;
+  goal: string;
+  name: string;
+  ctaKeyword?: string;
+  experimentPurpose?: string;
+  anchorBrand?: string;
+  story: { id: string | null; status: string };
+  carousel: { id: string | null; status: string };
+  reel: { id: string | null; status: string };
+  status?: string;
+  createdAt: string;
+};
 
 export default function DashboardPage() {
   const router = useRouter();
   const [carousels, setCarousels] = useState<Carousel[]>([]);
   const [reels, setReels] = useState<Reel[]>([]);
+  const [sets, setSets] = useState<ContentSet[]>([]);
   const [project, setProject] = useState<Project | null>(null);
   const [brand, setBrand] = useState<BrandConfig | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -44,12 +59,14 @@ export default function DashboardPage() {
     Promise.all([
       fetch("/api/carousels").then((r) => r.json()).catch(() => ({ carousels: [] })),
       fetch("/api/reels").then((r) => r.json()).catch(() => ({ reels: [] })),
+      fetch("/api/content-sets").then((r) => r.json()).catch(() => ({ sets: [] })),
       fetch("/api/brand").then((r) => r.json()).catch(() => null),
       fetch("/api/projects").then((r) => r.json()).catch(() => null),
     ])
-      .then(([c, r, b, p]) => {
+      .then(([c, r, s, b, p]) => {
         setCarousels(c.carousels || []);
         setReels(r.reels || []);
+        setSets(s.sets || []);
         setBrand(b);
         if (p?.projects && p?.active) {
           setProject(p.projects.find((x: Project) => x.slug === p.active) || null);
@@ -167,6 +184,7 @@ export default function DashboardPage() {
 
   const recentCarousels = [...carousels].slice(0, 6);
   const recentReels = [...reels].slice(0, 4);
+  const recentSets = [...sets].reverse().slice(0, 6);
 
   return (
     <div className="flex flex-col h-screen bg-background">
@@ -341,6 +359,115 @@ export default function DashboardPage() {
               ))}
             </div>
           </section>
+
+          {/* Content Sets · experimentos activos */}
+          {recentSets.length > 0 && (
+            <section>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-xs font-mono tracking-wider text-muted-foreground uppercase flex items-center gap-1.5">
+                  <Sparkles className="h-3 w-3" /> Experimentos · 1 idea = 3 piezas
+                </h2>
+                <span className="text-xs text-muted-foreground">
+                  {sets.length} sets en este proyecto
+                </span>
+              </div>
+              <div className="grid md:grid-cols-2 gap-3">
+                {recentSets.map((s) => {
+                  const statusCounts = [s.story, s.carousel, s.reel].reduce(
+                    (acc, p) => {
+                      acc[p.status] = (acc[p.status] || 0) + 1;
+                      return acc;
+                    },
+                    {} as Record<string, number>
+                  );
+                  const readyCount =
+                    (statusCounts.ready || 0) + (statusCounts.published || 0);
+                  const pct = Math.round((readyCount / 3) * 100);
+                  return (
+                    <div
+                      key={s.id}
+                      className="border border-border rounded-xl p-4 bg-surface/30 hover:border-accent/50 transition-all"
+                    >
+                      <div className="flex items-start justify-between gap-2 mb-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+                              🧪 {s.goal}
+                            </span>
+                            {s.ctaKeyword && (
+                              <span className="text-[10px] font-mono bg-accent/10 text-accent px-1.5 py-0.5 rounded font-bold tracking-wider">
+                                CTA: {s.ctaKeyword}
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="font-semibold text-sm truncate">{s.name}</h3>
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
+                            {s.topic}
+                          </p>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="text-xs font-bold text-accent">{pct}%</div>
+                          <div className="text-[9px] text-muted-foreground font-mono uppercase tracking-wider">
+                            completado
+                          </div>
+                        </div>
+                      </div>
+                      {s.anchorBrand && (
+                        <div className="text-[10px] text-muted-foreground mb-3">
+                          Marca ancla: <b className="text-foreground">{s.anchorBrand}</b>
+                        </div>
+                      )}
+                      {/* Progress bar */}
+                      <div className="h-1 bg-muted rounded-full overflow-hidden mb-3">
+                        <div
+                          className="h-full bg-gradient-to-r from-accent to-accent/70 transition-all"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      {/* 3 pieces */}
+                      <div className="grid grid-cols-3 gap-1.5">
+                        {(
+                          [
+                            { key: "story", label: "Historia", icon: "📱", piece: s.story, href: "/stories" },
+                            { key: "carousel", label: "Carrusel", icon: "📇", piece: s.carousel, href: s.carousel.id ? `/carousel/${s.carousel.id}` : null },
+                            { key: "reel", label: "Reel", icon: "🎬", piece: s.reel, href: "/reels" },
+                          ] as const
+                        ).map((p) => {
+                          const status = p.piece.status;
+                          const statusColor =
+                            status === "ready" || status === "published"
+                              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
+                              : status === "draft"
+                              ? "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30"
+                              : "bg-muted border-border text-muted-foreground";
+                          const inner = (
+                            <div
+                              className={`border rounded-lg p-2 text-center ${statusColor} transition-colors hover:opacity-80`}
+                            >
+                              <div className="text-base mb-0.5">{p.icon}</div>
+                              <div className="text-[10px] font-semibold uppercase tracking-wider">
+                                {p.label}
+                              </div>
+                              <div className="text-[9px] font-mono mt-0.5 opacity-75">
+                                {status === "pending" ? "pendiente" : status}
+                              </div>
+                            </div>
+                          );
+                          return p.href ? (
+                            <Link key={p.key} href={p.href}>
+                              {inner}
+                            </Link>
+                          ) : (
+                            <div key={p.key}>{inner}</div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
           {/* Contenido reciente · carruseles */}
           {recentCarousels.length > 0 && (

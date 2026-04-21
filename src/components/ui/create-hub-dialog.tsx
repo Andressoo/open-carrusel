@@ -284,6 +284,18 @@ export function CreateHubDialog({ open, onClose }: Props) {
   const [topic, setTopic] = useState("");
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
+  /** Mode: 'set' = 1 Story + 1 Carousel + 1 Reel coherent line (default)
+             'single' = only the chosen format */
+  const [mode, setMode] = useState<"set" | "single">("set");
+  const [ctaKeyword, setCtaKeyword] = useState("");
+
+  // ═══ Experiment fields (only surface in set mode) ═══
+  const [experimentPurpose, setExperimentPurpose] = useState("");
+  const [sceneDetails, setSceneDetails] = useState("");
+  const [possibleCaption, setPossibleCaption] = useState("");
+  const [anchorBrand, setAnchorBrand] = useState("");
+  const [references, setReferences] = useState<Array<{ url: string; type: string; name: string }>>([]);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (!open) {
@@ -293,10 +305,43 @@ export function CreateHubDialog({ open, onClose }: Props) {
         setFormat(null);
         setTopic("");
         setName("");
+        setCtaKeyword("");
+        setExperimentPurpose("");
+        setSceneDetails("");
+        setPossibleCaption("");
+        setAnchorBrand("");
+        setReferences([]);
+        setMode("set");
         setCreating(false);
       }, 200);
     }
   }, [open]);
+
+  const handleUploadRef = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: string
+  ) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      for (const file of files) {
+        const fd = new FormData();
+        fd.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: fd });
+        if (res.ok) {
+          const data = await res.json();
+          setReferences((prev) => [
+            ...prev,
+            { url: data.url, type, name: file.name },
+          ]);
+        }
+      }
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
 
   const recommendedFormats = goal
     ? FORMATS.filter((f) => f.bestFor?.includes(goal.id))
@@ -310,25 +355,95 @@ export function CreateHubDialog({ open, onClose }: Props) {
     setCreating(true);
 
     try {
+      const pieceName =
+        name.trim() ||
+        (topic.trim() && `${goal.label} · ${topic}`) ||
+        `${format.label} · ${new Date().toLocaleDateString()}`;
+
+      // ═══ SET MODE ═══ Create ContentSet + all 3 pieces linked
+      if (mode === "set") {
+        // 1. Create ContentSet with all experiment fields
+        const setRes = await fetch("/api/content-sets", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            topic,
+            goal: goal.id,
+            archetype: format.id,
+            name: pieceName,
+            ctaKeyword: ctaKeyword.trim().toUpperCase() || undefined,
+            thread: `Línea coherente: ${topic} · ${goal.label}`,
+            experimentPurpose: experimentPurpose.trim() || undefined,
+            sceneDetails: sceneDetails.trim() || undefined,
+            possibleCaptions: possibleCaption.trim()
+              ? [possibleCaption.trim()]
+              : undefined,
+            anchorBrand: anchorBrand.trim() || undefined,
+            references: references.length ? references : undefined,
+            status: "draft",
+          }),
+        });
+        const set = await setRes.json();
+
+        // 2. Create the primary piece (the format the user picked)
+        if (format.type === "carousel" || format.type === "post") {
+          const aspectRatio = format.aspectRatio || "4:5";
+          const cRes = await fetch("/api/carousels", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: pieceName, aspectRatio }),
+          });
+          if (cRes.ok) {
+            const car = await cRes.json();
+            // Link carousel to set
+            await fetch("/api/content-sets", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                id: set.id,
+                piece: "carousel",
+                updates: { id: car.id, status: "draft" },
+              }),
+            });
+            onClose();
+            router.push(
+              `/carousel/${car.id}?goal=${goal.id}&format=${format.id}&topic=${encodeURIComponent(topic)}&set=${set.id}`
+            );
+          }
+        } else if (format.type === "reel") {
+          onClose();
+          router.push(
+            `/reels/new?goal=${goal.id}&format=${format.id}&topic=${encodeURIComponent(topic)}&set=${set.id}&cta=${encodeURIComponent(ctaKeyword)}`
+          );
+        } else if (format.type === "story") {
+          onClose();
+          router.push(
+            `/stories?goal=${goal.id}&format=${format.id}&set=${set.id}`
+          );
+        }
+        return;
+      }
+
+      // ═══ SINGLE MODE ═══ Only create the chosen piece (legacy)
       if (format.type === "carousel" || format.type === "post") {
-        const carouselName =
-          name.trim() ||
-          (topic.trim() && `${goal.label} · ${topic}`) ||
-          `${format.label} · ${new Date().toLocaleDateString()}`;
         const aspectRatio = format.aspectRatio || "4:5";
         const res = await fetch("/api/carousels", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: carouselName, aspectRatio }),
+          body: JSON.stringify({ name: pieceName, aspectRatio }),
         });
         if (res.ok) {
           const data = await res.json();
           onClose();
-          router.push(`/carousel/${data.id}?goal=${goal.id}&format=${format.id}&topic=${encodeURIComponent(topic)}`);
+          router.push(
+            `/carousel/${data.id}?goal=${goal.id}&format=${format.id}&topic=${encodeURIComponent(topic)}`
+          );
         }
       } else if (format.type === "reel") {
         onClose();
-        router.push(`/reels/new?goal=${goal.id}&format=${format.id}&topic=${encodeURIComponent(topic)}`);
+        router.push(
+          `/reels/new?goal=${goal.id}&format=${format.id}&topic=${encodeURIComponent(topic)}`
+        );
       } else if (format.type === "story") {
         onClose();
         router.push(`/stories?goal=${goal.id}&format=${format.id}`);
@@ -468,13 +583,64 @@ export function CreateHubDialog({ open, onClose }: Props) {
                 </div>
               </div>
 
+              {/* Mode toggle · SET (default) vs SINGLE */}
+              <div className="border border-border rounded-xl p-1 bg-muted/30 flex gap-1">
+                <button
+                  onClick={() => setMode("set")}
+                  className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+                    mode === "set"
+                      ? "bg-accent text-accent-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Set completo
+                  <span className="text-[10px] font-mono opacity-70">
+                    3 piezas coherentes
+                  </span>
+                </button>
+                <button
+                  onClick={() => setMode("single")}
+                  className={`flex-1 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                    mode === "single"
+                      ? "bg-accent text-accent-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Pieza única
+                </button>
+              </div>
+              {mode === "set" && (
+                <div className="border border-accent/30 bg-accent/5 rounded-xl p-3 flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-accent/15 grid place-items-center shrink-0">
+                    <Sparkles className="h-4 w-4 text-accent" />
+                  </div>
+                  <div className="text-xs">
+                    <div className="font-semibold mb-1">1 idea = 3 piezas</div>
+                    <div className="text-muted-foreground leading-snug">
+                      Storu genera <b className="text-foreground">Historia + Carrusel + Reel</b>{" "}
+                      coherentes entre sí · mismo tema · mismo hook · misma CTA keyword ·
+                      misma paleta · hilo narrativo conectado.
+                    </div>
+                    <div className="text-muted-foreground mt-1.5 leading-snug">
+                      Elegí por dónde arrancar · las otras 2 quedan en{" "}
+                      <b className="text-foreground">pending</b> para completar cuando quieras.
+                    </div>
+                  </div>
+                </div>
+              )}
+
               <div>
                 <div className="text-xs font-mono tracking-wider text-muted-foreground uppercase mb-1">
                   Paso 2
                 </div>
-                <h3 className="text-lg font-semibold">Elegí el formato</h3>
+                <h3 className="text-lg font-semibold">
+                  {mode === "set" ? "¿Por dónde empezamos?" : "Elegí el formato"}
+                </h3>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Recomendados primero · después todos los otros.
+                  {mode === "set"
+                    ? "Cualquier pieza es buen punto de partida · las otras 2 se crean después."
+                    : "Recomendados primero · después todos los otros."}
                 </p>
               </div>
 
@@ -584,24 +750,226 @@ export function CreateHubDialog({ open, onClose }: Props) {
                   </div>
                 )}
 
+                {mode === "set" && (
+                  <>
+                    <div>
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                        CTA Keyword · comment-to-DM
+                      </label>
+                      <input
+                        type="text"
+                        value={ctaKeyword}
+                        onChange={(e) =>
+                          setCtaKeyword(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ""))
+                        }
+                        placeholder="MARTES · DROP · RETO · EXPERIMENTO"
+                        className="w-full px-4 py-2.5 text-sm font-mono border border-border rounded-lg bg-surface/40 outline-none focus:border-accent focus:ring-1 focus:ring-accent/30 uppercase tracking-wider"
+                      />
+                      <div className="text-[11px] text-muted-foreground mt-1.5">
+                        La misma palabra va a aparecer en las 3 piezas · los seguidores
+                        comentan esta palabra y reciben auto-respuesta por DM.
+                      </div>
+                    </div>
+
+                    {/* Experimento · propósito */}
+                    <div className="border border-border rounded-xl p-4 bg-muted/20 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded bg-accent/15 text-accent grid place-items-center text-xs">
+                          🧪
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold">Al final son experimentos</div>
+                          <div className="text-[11px] text-muted-foreground">
+                            Definí propósito · escena · captions · referencias. El AI los usa para coherencia.
+                          </div>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
+                          Propósito del experimento · qué vas a medir
+                        </label>
+                        <textarea
+                          value={experimentPurpose}
+                          onChange={(e) => setExperimentPurpose(e.target.value)}
+                          placeholder="Hipótesis: si publicamos un caso de uso real, la tasa de DMs con keyword MARTES duplica vs. un carrusel genérico."
+                          rows={2}
+                          className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-background outline-none focus:border-accent focus:ring-1 focus:ring-accent/30 resize-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
+                          Escena · locación · mood · props
+                        </label>
+                        <textarea
+                          value={sceneDetails}
+                          onChange={(e) => setSceneDetails(e.target.value)}
+                          placeholder="Restaurante en Barranquilla, martes 7pm. Plato principal con plating gourmet. Luz cálida candlelit. Mesa con 2 comensales."
+                          rows={2}
+                          className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-background outline-none focus:border-accent focus:ring-1 focus:ring-accent/30 resize-none"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
+                            Marca ancla · opcional
+                          </label>
+                          <input
+                            type="text"
+                            value={anchorBrand}
+                            onChange={(e) => setAnchorBrand(e.target.value)}
+                            placeholder="Punto G Gourmet"
+                            className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-background outline-none focus:border-accent focus:ring-1 focus:ring-accent/30"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
+                            Caption candidata
+                          </label>
+                          <input
+                            type="text"
+                            value={possibleCaption}
+                            onChange={(e) => setPossibleCaption(e.target.value)}
+                            placeholder="¿Por qué tu martes vale igual que tu sábado?"
+                            className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-background outline-none focus:border-accent focus:ring-1 focus:ring-accent/30"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Reference images upload */}
+                      <div>
+                        <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1.5 block">
+                          Referencias visuales · logos · fotos producto · inspiración
+                        </label>
+                        <div className="flex gap-2 flex-wrap mb-2">
+                          {references.map((r, i) => (
+                            <div
+                              key={i}
+                              className="relative group rounded-lg border border-border overflow-hidden w-16 h-16 bg-surface"
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={r.url}
+                                alt={r.name}
+                                className="w-full h-full object-cover"
+                              />
+                              <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-[8px] px-1 py-0.5 font-mono uppercase tracking-wider truncate">
+                                {r.type}
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setReferences((prev) => prev.filter((_, j) => j !== i))
+                                }
+                                className="absolute top-0.5 right-0.5 bg-destructive text-destructive-foreground w-4 h-4 rounded-full text-[9px] leading-none opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex gap-2 flex-wrap">
+                          {[
+                            { type: "logo", label: "📎 Logo" },
+                            { type: "product", label: "📦 Producto" },
+                            { type: "team", label: "👥 Equipo" },
+                            { type: "location", label: "📍 Locación" },
+                            { type: "inspiration", label: "✨ Inspiración" },
+                          ].map((b) => (
+                            <label
+                              key={b.type}
+                              className="text-[11px] font-semibold px-2.5 py-1.5 border border-border rounded-lg cursor-pointer hover:border-accent hover:bg-accent/5 transition-colors"
+                            >
+                              {b.label}
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => handleUploadRef(e, b.type)}
+                                multiple
+                              />
+                            </label>
+                          ))}
+                          {uploading && (
+                            <span className="text-[11px] text-muted-foreground self-center">
+                              Subiendo…
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+
                 {/* Preview de qué va a hacer */}
-                <div className="border border-dashed border-border rounded-xl p-4 bg-accent/5">
+                <div className="border border-dashed border-accent/30 rounded-xl p-4 bg-accent/5">
                   <div className="flex items-start gap-3">
                     <div className="w-8 h-8 rounded-lg bg-accent/15 grid place-items-center shrink-0">
                       <Sparkles className="h-4 w-4 text-accent" />
                     </div>
                     <div className="flex-1">
-                      <div className="text-xs font-semibold mb-1">Qué va a pasar ahora</div>
-                      <ul className="text-xs text-muted-foreground space-y-1 leading-relaxed">
-                        <li>
-                          ✓ Creamos una pieza <b>{format.type}</b>{" "}
-                          {format.aspectRatio && <span>en <code className="px-1 py-0.5 bg-surface rounded text-[10px]">{format.aspectRatio}</code></span>}
-                        </li>
-                        <li>✓ AI tiene memoria de tu brand · colores · fuentes · voice</li>
-                        <li>✓ Abrimos el editor con el contexto de tu brief</li>
-                        <li>✓ Podés iterar con chat AI hasta que quede como querés</li>
-                        <li>✓ Export directo a imagen/video cuando esté listo</li>
-                      </ul>
+                      <div className="text-xs font-semibold mb-2">Qué va a pasar ahora</div>
+                      {mode === "set" ? (
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {(["story", "carousel", "reel"] as const).map((t) => {
+                              const isPrimary = format.type === t || (format.type === "post" && t === "carousel");
+                              return (
+                                <div
+                                  key={t}
+                                  className={`rounded-lg p-2 text-[10px] text-center font-mono uppercase tracking-wider ${
+                                    isPrimary
+                                      ? "bg-accent text-accent-foreground font-bold"
+                                      : "bg-background border border-border text-muted-foreground"
+                                  }`}
+                                >
+                                  {t === "story" ? "📱" : t === "carousel" ? "📇" : "🎬"}{" "}
+                                  {t}
+                                  <div className="text-[9px] mt-0.5 opacity-75 normal-case">
+                                    {isPrimary ? "ahora" : "pending"}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <ul className="text-xs text-muted-foreground space-y-0.5 leading-relaxed pt-1">
+                            <li>✓ Set coherente · misma idea · 3 piezas conectadas</li>
+                            <li>✓ AI hereda brand · colores · voice del proyecto</li>
+                            <li>
+                              ✓ Empezamos por el <b className="text-foreground">{format.type}</b> ·
+                              las otras 2 quedan listas para completar
+                            </li>
+                            {ctaKeyword && (
+                              <li>
+                                ✓ CTA uniforme:{" "}
+                                <code className="px-1.5 py-0.5 bg-surface rounded text-[10px] font-bold">
+                                  {ctaKeyword}
+                                </code>
+                              </li>
+                            )}
+                          </ul>
+                        </div>
+                      ) : (
+                        <ul className="text-xs text-muted-foreground space-y-1 leading-relaxed">
+                          <li>
+                            ✓ Creamos una pieza <b>{format.type}</b>{" "}
+                            {format.aspectRatio && (
+                              <span>
+                                en{" "}
+                                <code className="px-1 py-0.5 bg-surface rounded text-[10px]">
+                                  {format.aspectRatio}
+                                </code>
+                              </span>
+                            )}
+                          </li>
+                          <li>✓ AI tiene memoria de tu brand · colores · fuentes · voice</li>
+                          <li>✓ Abrimos el editor con el contexto de tu brief</li>
+                          <li>✓ Podés iterar con chat AI hasta que quede como querés</li>
+                          <li>✓ Export directo a imagen/video cuando esté listo</li>
+                        </ul>
+                      )}
                     </div>
                   </div>
                 </div>

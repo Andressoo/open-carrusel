@@ -36,6 +36,15 @@ export type ContentSetPiece = {
   outputUrl?: string;
 };
 
+export type ReferenceAsset = {
+  /** URL en /uploads/xxx.png */
+  url: string;
+  /** Tipo · logo, product-photo, team, location, inspiration */
+  type: "logo" | "product" | "team" | "location" | "inspiration" | "other";
+  /** Nombre para display · opcional */
+  name?: string;
+};
+
 export type ContentSet = {
   id: string;
   /** Tema central · one-liner */
@@ -52,10 +61,38 @@ export type ContentSet = {
   ctaKeyword?: string;
   /** Marca ancla referenciada · si aplica */
   anchorBrand?: string;
+
+  /** Propósito del experimento · qué esperamos que pase · qué vamos a medir.
+   *  Al fin y al cabo son experimentos · acá va la hipótesis. */
+  experimentPurpose?: string;
+  /** Hipótesis medible (antes/después, test A/B, etc.) */
+  hypothesis?: string;
+  /** KPIs que vamos a medir */
+  kpis?: string[];
+
+  /** Detalles de la escena · setting · locación · people · mood · props */
+  sceneDetails?: string;
+  /** Paleta visual específica del set · si difiere de la del proyecto */
+  paletteOverride?: { primary?: string; accent?: string; bg?: string };
+
+  /** Captions candidatas para publicación · generalmente 3-5 opciones */
+  possibleCaptions?: string[];
+  /** Hashtags sugeridos para la línea entera */
+  hashtags?: string[];
+
+  /** Referencias visuales subidas · logos · fotos de producto · inspiración */
+  references?: ReferenceAsset[];
+
   /** Las 3 piezas del set */
   story: ContentSetPiece;
   carousel: ContentSetPiece;
   reel: ContentSetPiece;
+
+  /** Estado del experimento · draft · live · done · archived */
+  status?: "draft" | "live" | "done" | "archived";
+  /** Fecha tentativa de publicación */
+  publishDate?: string;
+
   createdAt: string;
   updatedAt: string;
 };
