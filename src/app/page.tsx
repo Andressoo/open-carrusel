@@ -2,12 +2,14 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Layers, Calendar, SlidersHorizontal, Trash2, Copy } from "lucide-react";
+import { Plus, Layers, Calendar, SlidersHorizontal, Trash2, Copy, Film, GalleryVertical, Image as ImageIcon } from "lucide-react";
+import Link from "next/link";
 import { TopBar } from "@/components/layout/TopBar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { CreateCarouselDialog } from "@/components/ui/create-carousel-dialog";
+import { CreateHubDialog } from "@/components/ui/create-hub-dialog";
 import { BrandSetup } from "@/components/brand/BrandSetup";
 import { SlideRenderer } from "@/components/editor/SlideRenderer";
 import { TemplateGallery } from "@/components/templates/TemplateGallery";
@@ -91,10 +93,9 @@ export default function DashboardPage() {
         onConfirm={confirmState.onConfirm}
       />
 
-      <CreateCarouselDialog
+      <CreateHubDialog
         open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
-        onCreate={handleCreate}
+        onClose={() => setShowCreateDialog(false)}
       />
 
       <BrandSetup
@@ -120,7 +121,7 @@ export default function DashboardPage() {
             </div>
             <Button onClick={() => setShowCreateDialog(true)} variant="accent">
               <Plus className="h-4 w-4" />
-              New Carousel
+              Crear nuevo
             </Button>
           </div>
 

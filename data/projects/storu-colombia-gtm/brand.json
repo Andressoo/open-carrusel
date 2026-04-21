@@ -1,0 +1,36 @@
+{
+  "name": "BonusPrize",
+  "colors": {
+    "primary": "#131217",
+    "secondary": "#5635FD",
+    "accent": "#F8C644",
+    "background": "#FFFFFF",
+    "surface": "#EFF3F8"
+  },
+  "fonts": {
+    "heading": "Anton",
+    "body": "Poppins"
+  },
+  "customFonts": [],
+  "logoPath": "/uploads/67849ecb-ae8d-464b-84cc-459a1713a4a8.png",
+  "styleKeywords": [
+    "Bonus Prize = consumer surface (compra, gana, explora). User NEVER sees Storu.",
+    "Storu = merchant dashboard (crea campanas, mide, optimiza). Merchant NEVER sees Bonus Prize brand, only as distribution channel.",
+    "Bru = cultural/narrative layer — explica, educa, convierte.",
+    "Never mix Bonus Prize + Storu on same surface. The only bridge is the campaign/ticket object.",
+    "Product thesis: operating system for consumption — not a marketplace, not a discount system.",
+    "Core loop: merchant designs campaign (Storu) -> user buys (Bonus Prize) -> user earns -> user returns. Not a sale, a loop.",
+    "User tagline: No compres por comprar. Compra para ganar.",
+    "Merchant tagline: No vendas con descuentos. Diseña sistemas que te hagan vender más.",
+    "North star: No estamos cambiando como compras. Estamos cambiando por que compras.",
+    "Differentiator is the LOGIC (incentives as system), not cashback or tech.",
+    "User-side feel: simple, rapido, obvio (esto me conviene).",
+    "Merchant-side feel: poderoso, flexible, estrategico.",
+    "Visual system: ink-first structure, violet for action only, prize yellow only for reward moments.",
+    "Anton uppercase display for marketing headlines, Poppins 400-700 for body/UI.",
+    "16px card radius, 1px #e8e8e8 borders, flat surfaces, elevation only on overlays.",
+    "Storu logo at /uploads/8503ba56-ee7c-476b-87d5-31e42d1eac77.png — use ONLY on merchant-facing carousels, never alongside Bonus Prize."
+  ],
+  "createdAt": "2026-04-20T06:10:49.069Z",
+  "updatedAt": "2026-04-20T06:12:53.013Z"
+}

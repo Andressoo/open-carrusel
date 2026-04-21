@@ -1,0 +1,19 @@
+{
+  "active": "storu-colombia-gtm",
+  "projects": [
+    {
+      "slug": "storu-colombia-gtm",
+      "name": "Storu · Colombia GTM",
+      "description": "50 carruseles GTM Colombia · 20 marcas · 5 ciudades",
+      "icon": "🇨🇴",
+      "createdAt": "2026-04-20"
+    },
+    {
+      "slug": "default",
+      "name": "Nuevo proyecto",
+      "description": "Proyecto en blanco",
+      "icon": "📁",
+      "createdAt": "2026-04-20"
+    }
+  ]
+}

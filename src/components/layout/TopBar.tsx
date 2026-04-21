@@ -2,8 +2,10 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { ArrowLeft, Settings, Layers } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { ArrowLeft, Settings, Layers, Film, GalleryVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ProjectSwitcher } from "@/components/layout/ProjectSwitcher";
 
 interface TopBarProps {
   title?: string;
@@ -69,16 +71,22 @@ export function TopBar({
             }}
             className="font-semibold text-sm bg-transparent border-b-2 border-accent outline-none py-0.5 min-w-[120px]"
           />
-        ) : (
+        ) : title ? (
           <span
             className={`font-semibold text-sm truncate ${editable ? "cursor-pointer hover:text-accent transition-colors" : ""}`}
             onClick={() => editable && startEditing()}
             title={editable ? "Click to rename" : undefined}
           >
-            {title || "Open Carrusel"}
+            {title}
           </span>
-        )}
+        ) : null}
       </div>
+      {!showBack && (
+        <div className="ml-1">
+          <ProjectSwitcher />
+        </div>
+      )}
+      {!showBack && <NavTabs />}
       <div className="flex-1" />
       {onSettingsClick && (
         <Button
@@ -91,5 +99,35 @@ export function TopBar({
         </Button>
       )}
     </header>
+  );
+}
+
+function NavTabs() {
+  const pathname = usePathname() || "/";
+  const tabs = [
+    { href: "/", label: "Carruseles", icon: <Layers className="h-3.5 w-3.5" />, match: (p: string) => p === "/" || p.startsWith("/carousel") },
+    { href: "/reels", label: "Reels", icon: <Film className="h-3.5 w-3.5" />, match: (p: string) => p.startsWith("/reels") },
+    { href: "/stories", label: "Historias", icon: <GalleryVertical className="h-3.5 w-3.5" />, match: (p: string) => p.startsWith("/stories") },
+  ];
+  return (
+    <nav className="ml-4 flex items-center gap-1">
+      {tabs.map((t) => {
+        const active = t.match(pathname);
+        return (
+          <Link
+            key={t.href}
+            href={t.href}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${
+              active
+                ? "bg-accent/10 text-accent"
+                : "text-muted-foreground hover:text-foreground hover:bg-surface"
+            }`}
+          >
+            {t.icon}
+            {t.label}
+          </Link>
+        );
+      })}
+    </nav>
   );
 }

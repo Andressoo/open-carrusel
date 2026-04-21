@@ -49,7 +49,19 @@ export async function POST(request: NextRequest) {
   const brand = await getBrand();
   const carousel = carouselId ? await getCarousel(carouselId) : null;
   const stylePreset = stylePresetId ? await getPreset(stylePresetId) : null;
-  const systemPrompt = buildSystemPrompt(brand, carousel, stylePreset);
+  const basePrompt = buildSystemPrompt(brand, carousel, stylePreset);
+
+  // Inject active project memory (markdown files in /data/projects/[slug]/memory/)
+  let projectContext = "";
+  try {
+    const { getProjectContext } = await import("@/lib/projects");
+    projectContext = await getProjectContext();
+  } catch {
+    /* projects.json not yet created — skip */
+  }
+  const systemPrompt = projectContext
+    ? `${basePrompt}\n\n---\n\n# PROJECT MEMORY (contexto persistente del proyecto activo)\n\n${projectContext}`
+    : basePrompt;
 
   const claudePath = getClaudePath();
   const abortController = new AbortController();
