@@ -106,8 +106,9 @@ function NavTabs() {
   const pathname = usePathname() || "/";
   const tabs = [
     { href: "/", label: "Sets", icon: <Layers className="h-3.5 w-3.5" />, match: (p: string) => p === "/" || p.startsWith("/set") || p.startsWith("/carousel") },
+    { href: "/generate", label: "Generar", icon: <Wand2 className="h-3.5 w-3.5" />, match: (p: string) => p.startsWith("/generate") },
     { href: "/calendar", label: "Calendario", icon: <CalendarIcon className="h-3.5 w-3.5" />, match: (p: string) => p.startsWith("/calendar") },
-    { href: "/studio", label: "Templates", icon: <Wand2 className="h-3.5 w-3.5" />, match: (p: string) => p.startsWith("/studio") },
+    { href: "/studio", label: "Templates", icon: <Film className="h-3.5 w-3.5" />, match: (p: string) => p.startsWith("/studio") },
   ];
   return (
     <nav className="ml-4 flex items-center gap-1">
