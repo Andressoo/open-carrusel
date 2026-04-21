@@ -269,7 +269,33 @@ const FORMATS: Format[] = [
 
 // ════════════ COMPONENT ════════════
 
-type Step = "goal" | "format" | "brief" | "creating";
+type Step = "ai-idea" | "ai-preview" | "goal" | "format" | "brief" | "creating";
+
+type AIBrief = {
+  name: string;
+  topic: string;
+  goal: string;
+  archetype?: string;
+  ctaKeyword?: string;
+  anchorBrand?: string | null;
+  thread?: string;
+  experimentPurpose?: string;
+  hypothesis?: string;
+  kpis?: string[];
+  sceneDetails?: string;
+  possibleCaptions?: string[];
+  hashtags?: string[];
+  publishStrategy?: {
+    order?: string | string[];
+    cadence?: string;
+    bestDayTime?: string;
+  };
+  pieces?: {
+    story?: { dynamic?: string; text?: string; options?: string[]; angle?: string };
+    carousel?: { slides?: number; hookText?: string; insight?: string; proofPoint?: string; ctaText?: string };
+    reel?: { template?: string; duration?: number; hook?: string; body?: string; cta?: string };
+  };
+};
 
 type Props = {
   open: boolean;
@@ -278,7 +304,7 @@ type Props = {
 
 export function CreateHubDialog({ open, onClose }: Props) {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("goal");
+  const [step, setStep] = useState<Step>("ai-idea");
   const [goal, setGoal] = useState<Goal | null>(null);
   const [format, setFormat] = useState<Format | null>(null);
   const [topic, setTopic] = useState("");
@@ -297,10 +323,17 @@ export function CreateHubDialog({ open, onClose }: Props) {
   const [references, setReferences] = useState<Array<{ url: string; type: string; name: string }>>([]);
   const [uploading, setUploading] = useState(false);
 
+  // ═══ AI Magic mode ═══
+  const [aiIdea, setAiIdea] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
+  const [aiBrief, setAiBrief] = useState<AIBrief | null>(null);
+  const [aiPublishDate, setAiPublishDate] = useState("");
+
   useEffect(() => {
     if (!open) {
       setTimeout(() => {
-        setStep("goal");
+        setStep("ai-idea");
         setGoal(null);
         setFormat(null);
         setTopic("");
@@ -313,9 +346,72 @@ export function CreateHubDialog({ open, onClose }: Props) {
         setReferences([]);
         setMode("set");
         setCreating(false);
+        setAiIdea("");
+        setAiLoading(false);
+        setAiError("");
+        setAiBrief(null);
+        setAiPublishDate("");
       }, 200);
     }
   }, [open]);
+
+  // ═══ AI generate ═══
+  const generateFromIdea = async () => {
+    if (!aiIdea.trim()) return;
+    setAiLoading(true);
+    setAiError("");
+    try {
+      const res = await fetch("/api/ai/generate-set", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idea: aiIdea.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAiError(data.error || "AI falló");
+        return;
+      }
+      setAiBrief(data as AIBrief);
+      setStep("ai-preview");
+    } catch (err) {
+      setAiError((err as Error).message || "network error");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const confirmAIBrief = async () => {
+    if (!aiBrief) return;
+    setCreating(true);
+    try {
+      const setRes = await fetch("/api/content-sets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          topic: aiBrief.topic,
+          goal: aiBrief.goal,
+          archetype: aiBrief.archetype,
+          name: aiBrief.name,
+          thread: aiBrief.thread,
+          ctaKeyword: aiBrief.ctaKeyword,
+          anchorBrand: aiBrief.anchorBrand || undefined,
+          experimentPurpose: aiBrief.experimentPurpose,
+          hypothesis: aiBrief.hypothesis,
+          kpis: aiBrief.kpis,
+          sceneDetails: aiBrief.sceneDetails,
+          possibleCaptions: aiBrief.possibleCaptions,
+          hashtags: aiBrief.hashtags,
+          publishDate: aiPublishDate || undefined,
+          status: "draft",
+        }),
+      });
+      const set = await setRes.json();
+      onClose();
+      router.push(`/set/${set.id}?ai=1`);
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const handleUploadRef = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -484,7 +580,7 @@ export function CreateHubDialog({ open, onClose }: Props) {
               <X className="h-4 w-4" />
             </Button>
           </div>
-          <div className="flex items-center gap-2">
+          <div className={`flex items-center gap-2 ${step.startsWith("ai-") ? "hidden" : ""}`}>
             {steps.map((s, i) => {
               const active = s.id === step;
               const done = i < currentIdx;
@@ -526,6 +622,248 @@ export function CreateHubDialog({ open, onClose }: Props) {
         </div>
 
         <div className="flex-1 overflow-y-auto">
+          {/* ═══ STEP 0 · AI IDEA ═══ */}
+          {step === "ai-idea" && (
+            <div className="p-6 space-y-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="text-xs font-mono tracking-wider text-accent uppercase mb-1 flex items-center gap-1.5">
+                    <Wand2 className="h-3 w-3" /> Modo AI
+                  </div>
+                  <h3 className="text-lg font-semibold">Describí la idea · el AI arma el set</h3>
+                  <p className="text-sm text-muted-foreground mt-1 leading-snug">
+                    1 idea → Historia + Carrusel + Reel · captions · hashtags · estrategia de publicación.
+                    Hereda tu brand y memoria del proyecto.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setStep("goal")}
+                  className="text-[11px] font-semibold text-muted-foreground hover:text-foreground underline shrink-0 mt-1"
+                >
+                  Prefiero modo manual →
+                </button>
+              </div>
+
+              <div className="relative">
+                <textarea
+                  value={aiIdea}
+                  onChange={(e) => setAiIdea(e.target.value)}
+                  placeholder="Ej: Quiero activar mi restaurante en Barranquilla los martes con una promo de cena para parejas. La gente dice que martes es muerto, quiero demostrar lo contrario con un caso real."
+                  rows={5}
+                  className="w-full px-4 py-3 text-sm border border-border rounded-xl bg-surface/40 outline-none focus:border-accent focus:ring-1 focus:ring-accent/30 resize-none leading-relaxed"
+                  autoFocus
+                  disabled={aiLoading}
+                />
+                <div className="absolute bottom-2 right-3 text-[10px] font-mono text-muted-foreground">
+                  {aiIdea.length} chars
+                </div>
+              </div>
+
+              {aiError && (
+                <div className="text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-lg p-3">
+                  {aiError}
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-2 text-[11px]">
+                {[
+                  "Activar martes con cena para parejas · restaurante BAQ",
+                  "Llenar spa un jueves 3-6pm · paquete relax",
+                  "Lanzar nueva colección · drop 48h cápsula",
+                ].map((s, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setAiIdea(s)}
+                    disabled={aiLoading}
+                    className="text-left border border-border rounded-lg p-2.5 hover:border-accent/50 hover:bg-accent/5 transition-colors text-muted-foreground leading-snug"
+                  >
+                    💡 {s}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center justify-between border-t border-border pt-4">
+                <div className="text-[11px] text-muted-foreground">
+                  {aiLoading ? "⏳ Claude analizando · benchmarks · memoria del proyecto…" : "Toma ~20-40s · genera brief completo"}
+                </div>
+                <Button
+                  onClick={generateFromIdea}
+                  variant="accent"
+                  disabled={!aiIdea.trim() || aiLoading}
+                  className="gap-2"
+                >
+                  {aiLoading ? (
+                    <>
+                      <span className="inline-block w-3.5 h-3.5 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin" />
+                      Generando…
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      Generar set completo
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* ═══ STEP 0b · AI PREVIEW ═══ */}
+          {step === "ai-preview" && aiBrief && (
+            <div className="p-6 space-y-5">
+              <div>
+                <div className="text-xs font-mono tracking-wider text-accent uppercase mb-1 flex items-center gap-1.5">
+                  <Sparkles className="h-3 w-3" /> Brief generado
+                </div>
+                <h3 className="text-lg font-semibold">{aiBrief.name}</h3>
+                <p className="text-sm text-muted-foreground mt-1">{aiBrief.topic}</p>
+              </div>
+
+              {/* Metadata pills */}
+              <div className="flex flex-wrap gap-1.5 text-[11px]">
+                <span className="px-2 py-1 rounded-full bg-accent/10 text-accent font-semibold">
+                  🎯 {aiBrief.goal}
+                </span>
+                {aiBrief.archetype && (
+                  <span className="px-2 py-1 rounded-full bg-violet-500/10 text-violet-600 font-semibold">
+                    🧬 {aiBrief.archetype}
+                  </span>
+                )}
+                {aiBrief.ctaKeyword && (
+                  <span className="px-2 py-1 rounded-full bg-amber-500/10 text-amber-700 dark:text-amber-400 font-mono font-bold">
+                    📣 {aiBrief.ctaKeyword}
+                  </span>
+                )}
+                {aiBrief.anchorBrand && (
+                  <span className="px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-semibold">
+                    🏷 {aiBrief.anchorBrand}
+                  </span>
+                )}
+              </div>
+
+              {/* Thread narrative */}
+              {aiBrief.thread && (
+                <div className="border border-border rounded-xl p-3 bg-muted/20">
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1">Hilo narrativo</div>
+                  <div className="text-sm leading-relaxed">{aiBrief.thread}</div>
+                </div>
+              )}
+
+              {/* Experiment */}
+              {(aiBrief.experimentPurpose || aiBrief.hypothesis || aiBrief.kpis?.length) && (
+                <div className="border border-border rounded-xl p-3 bg-muted/20 space-y-2">
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                    🧪 Experimento
+                  </div>
+                  {aiBrief.experimentPurpose && (
+                    <div className="text-xs"><b>Propósito:</b> {aiBrief.experimentPurpose}</div>
+                  )}
+                  {aiBrief.hypothesis && (
+                    <div className="text-xs"><b>Hipótesis:</b> {aiBrief.hypothesis}</div>
+                  )}
+                  {aiBrief.kpis && aiBrief.kpis.length > 0 && (
+                    <div className="text-xs">
+                      <b>KPIs:</b>
+                      <ul className="list-disc ml-4 mt-0.5 space-y-0.5">
+                        {aiBrief.kpis.map((k, i) => <li key={i}>{k}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Pieces preview */}
+              {aiBrief.pieces && (
+                <div className="grid grid-cols-3 gap-2">
+                  {aiBrief.pieces.story && (
+                    <div className="border border-border rounded-xl p-3 bg-background">
+                      <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1">📱 Historia</div>
+                      <div className="text-[11px] font-semibold mb-1">{aiBrief.pieces.story.dynamic}</div>
+                      <div className="text-xs leading-snug">{aiBrief.pieces.story.text}</div>
+                      {aiBrief.pieces.story.options && aiBrief.pieces.story.options.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {aiBrief.pieces.story.options.map((o, i) => (
+                            <span key={i} className="text-[10px] px-1.5 py-0.5 bg-muted/60 rounded">{o}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {aiBrief.pieces.carousel && (
+                    <div className="border border-border rounded-xl p-3 bg-background">
+                      <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1">📇 Carrusel</div>
+                      <div className="text-[11px] font-semibold mb-1">{aiBrief.pieces.carousel.slides || 5} slides</div>
+                      <div className="text-xs leading-snug line-clamp-3">{aiBrief.pieces.carousel.hookText}</div>
+                    </div>
+                  )}
+                  {aiBrief.pieces.reel && (
+                    <div className="border border-border rounded-xl p-3 bg-background">
+                      <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1">🎬 Reel</div>
+                      <div className="text-[11px] font-semibold mb-1">{aiBrief.pieces.reel.template} · {aiBrief.pieces.reel.duration}s</div>
+                      <div className="text-xs leading-snug line-clamp-3">{aiBrief.pieces.reel.hook}</div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Captions */}
+              {aiBrief.possibleCaptions && aiBrief.possibleCaptions.length > 0 && (
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1.5">Captions candidatas</div>
+                  <div className="space-y-1.5">
+                    {aiBrief.possibleCaptions.slice(0, 5).map((c, i) => (
+                      <div key={i} className="text-xs border border-border rounded-lg p-2 bg-background leading-snug">
+                        <span className="font-mono text-[10px] text-muted-foreground mr-1">{i + 1}.</span>
+                        {c}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Hashtags */}
+              {aiBrief.hashtags && aiBrief.hashtags.length > 0 && (
+                <div>
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground mb-1.5">Hashtags</div>
+                  <div className="flex flex-wrap gap-1">
+                    {aiBrief.hashtags.map((h, i) => (
+                      <span key={i} className="text-[11px] font-mono px-2 py-0.5 bg-accent/10 text-accent rounded">
+                        #{h.replace(/^#/, "")}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Publish strategy + schedule */}
+              {aiBrief.publishStrategy && (
+                <div className="border border-border rounded-xl p-3 bg-muted/20 space-y-2">
+                  <div className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">📅 Estrategia de publicación</div>
+                  {aiBrief.publishStrategy.order && (
+                    <div className="text-xs"><b>Orden:</b> {Array.isArray(aiBrief.publishStrategy.order) ? aiBrief.publishStrategy.order.join(" → ") : aiBrief.publishStrategy.order}</div>
+                  )}
+                  {aiBrief.publishStrategy.cadence && (
+                    <div className="text-xs"><b>Cadencia:</b> {aiBrief.publishStrategy.cadence}</div>
+                  )}
+                  {aiBrief.publishStrategy.bestDayTime && (
+                    <div className="text-xs"><b>Mejor momento:</b> {aiBrief.publishStrategy.bestDayTime}</div>
+                  )}
+                  <div className="pt-1">
+                    <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">
+                      Fecha objetivo de publicación
+                    </label>
+                    <input
+                      type="date"
+                      value={aiPublishDate}
+                      onChange={(e) => setAiPublishDate(e.target.value)}
+                      className="w-full px-3 py-2 text-xs border border-border rounded-lg bg-background outline-none focus:border-accent focus:ring-1 focus:ring-accent/30"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* ═══ STEP 1 · GOAL ═══ */}
           {step === "goal" && (
             <div className="p-6 space-y-4">
@@ -984,8 +1322,12 @@ export function CreateHubDialog({ open, onClose }: Props) {
             variant="ghost"
             size="sm"
             onClick={() => {
-              if (step === "goal") {
+              if (step === "ai-idea") {
                 onClose();
+              } else if (step === "ai-preview") {
+                setStep("ai-idea");
+              } else if (step === "goal") {
+                setStep("ai-idea");
               } else if (step === "format") {
                 setStep("goal");
               } else if (step === "brief") {
@@ -995,10 +1337,35 @@ export function CreateHubDialog({ open, onClose }: Props) {
             className="gap-1.5"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
-            {step === "goal" ? "Cancelar" : "Atrás"}
+            {step === "ai-idea" ? "Cancelar" : "Atrás"}
           </Button>
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            {step === "ai-idea" && "Escribí tu idea · AI genera el set"}
+            {step === "ai-preview" && (
+              <>
+                <button
+                  onClick={() => { setAiBrief(null); setStep("ai-idea"); }}
+                  className="text-xs underline text-muted-foreground hover:text-foreground mr-2"
+                  disabled={creating}
+                >
+                  Re-generar
+                </button>
+                <Button
+                  onClick={confirmAIBrief}
+                  variant="accent"
+                  disabled={creating}
+                  className="gap-2"
+                >
+                  {creating ? "Creando…" : (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Crear set con este brief
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
             {step === "goal" && "Elegí un objetivo para continuar"}
             {step === "format" && "Elegí un formato para continuar"}
             {step === "brief" && (

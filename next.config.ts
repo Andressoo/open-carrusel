@@ -1,7 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  serverExternalPackages: ["sharp", "archiver", "puppeteer"],
+  serverExternalPackages: [
+    "sharp",
+    "archiver",
+    "puppeteer",
+    "@remotion/bundler",
+    "@remotion/renderer",
+    "@remotion/compositor-darwin-arm64",
+    "esbuild",
+  ],
   async headers() {
     return [
       {
@@ -17,6 +25,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https:",
               "frame-src 'self' blob:",
               "connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com",
+              "media-src 'self' blob:",
             ].join("; "),
           },
         ],
