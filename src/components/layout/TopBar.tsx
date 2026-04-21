@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, Settings, Layers, Film, GalleryVertical } from "lucide-react";
+import { ArrowLeft, Settings, Layers, Film, GalleryVertical, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProjectSwitcher } from "@/components/layout/ProjectSwitcher";
 
@@ -108,6 +108,7 @@ function NavTabs() {
     { href: "/", label: "Carruseles", icon: <Layers className="h-3.5 w-3.5" />, match: (p: string) => p === "/" || p.startsWith("/carousel") },
     { href: "/reels", label: "Reels", icon: <Film className="h-3.5 w-3.5" />, match: (p: string) => p.startsWith("/reels") },
     { href: "/stories", label: "Historias", icon: <GalleryVertical className="h-3.5 w-3.5" />, match: (p: string) => p.startsWith("/stories") },
+    { href: "/studio", label: "Studio", icon: <Wand2 className="h-3.5 w-3.5" />, match: (p: string) => p.startsWith("/studio") },
   ];
   return (
     <nav className="ml-4 flex items-center gap-1">

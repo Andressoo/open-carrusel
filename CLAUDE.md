@@ -17,6 +17,9 @@ AI-powered Instagram carousel builder. Next.js 16 + React 19 + TypeScript + Tail
 - `src/lib/data.ts` — JSON storage with proper async-mutex and atomic writes
 - `src/lib/carousels.ts` — Carousel and slide CRUD with version history
 - `src/lib/claude-path.ts` — Portable Claude CLI discovery
+- `src/epm/` — Editor Pro Max (absorbed). Templates (social/content/promo/editing), components, presets, hooks, schemas, utils. Imported relatively into the shared Remotion Root.
+- `src/remotion/Root.tsx` — Registers Storu native + EPM compositions. ALWAYS use relative imports (not `@/` aliases) — the Remotion webpack bundler can't resolve Next.js path aliases.
+- `src/app/studio/page.tsx` — Unified template catalog UI (Storu + EPM) with Player preview and direct MP4 render via `/api/render`.
 
 ## API Routes
 

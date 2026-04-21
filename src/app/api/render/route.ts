@@ -22,13 +22,23 @@ async function getBundle(): Promise<string> {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { template, props, reelId } = body as {
+    const {
+      template: tmpl,
+      compositionId,
+      props,
+      inputProps,
+      reelId,
+    } = body as {
       template?: string;
+      compositionId?: string;
       props?: Record<string, unknown>;
+      inputProps?: Record<string, unknown>;
       reelId?: string;
     };
+    const template = tmpl || compositionId;
+    const finalProps = props || inputProps;
     if (!template) {
-      return NextResponse.json({ error: "template required" }, { status: 400 });
+      return NextResponse.json({ error: "template or compositionId required" }, { status: 400 });
     }
 
     const outDir = path.resolve(process.cwd(), "public", "renders");
@@ -40,7 +50,7 @@ export async function POST(request: Request) {
     const comp = await selectComposition({
       serveUrl: bundleLocation,
       id: template,
-      inputProps: props as never,
+      inputProps: finalProps as never,
     });
 
     await renderMedia({
@@ -48,7 +58,7 @@ export async function POST(request: Request) {
       serveUrl: bundleLocation,
       codec: "h264",
       outputLocation: outPath,
-      inputProps: props as never,
+      inputProps: finalProps as never,
     });
 
     return NextResponse.json({
