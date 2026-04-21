@@ -384,13 +384,12 @@ export default function DashboardPage() {
                     (statusCounts.ready || 0) + (statusCounts.published || 0);
                   const pct = Math.round((readyCount / 3) * 100);
                   return (
-                    <Link
+                    <div
                       key={s.id}
-                      href={`/set/${s.id}`}
                       className="border border-border rounded-xl p-4 bg-surface/30 hover:border-accent/50 transition-all block"
                     >
                       <div className="flex items-start justify-between gap-2 mb-3">
-                        <div className="flex-1 min-w-0">
+                        <Link href={`/set/${s.id}`} className="flex-1 min-w-0 hover:opacity-90">
                           <div className="flex items-center gap-2 mb-1">
                             <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
                               🧪 {s.goal}
@@ -405,7 +404,7 @@ export default function DashboardPage() {
                           <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
                             {s.topic}
                           </p>
-                        </div>
+                        </Link>
                         <div className="text-right shrink-0">
                           <div className="text-xs font-bold text-accent">{pct}%</div>
                           <div className="text-[9px] text-muted-foreground font-mono uppercase tracking-wider">
@@ -463,7 +462,13 @@ export default function DashboardPage() {
                           );
                         })}
                       </div>
-                    </Link>
+                      <Link
+                        href={`/set/${s.id}`}
+                        className="mt-3 block text-center text-[11px] font-semibold text-accent hover:underline"
+                      >
+                        Abrir set →
+                      </Link>
+                    </div>
                   );
                 })}
               </div>
