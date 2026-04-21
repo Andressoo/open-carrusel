@@ -22,6 +22,11 @@ import { Button } from "@/components/ui/button";
 import { TikTokHook } from "@/lib/remotion/TikTokHook";
 import { BeforeAfter } from "@/lib/remotion/BeforeAfter";
 import { ViralManifesto60s } from "@/lib/remotion/ViralManifesto60s";
+import { GlitchIntro } from "@/lib/remotion/styles/GlitchIntro";
+import { StatDrop } from "@/lib/remotion/styles/StatDrop";
+import { SplitScreen } from "@/lib/remotion/styles/SplitScreen";
+import { Typewriter } from "@/lib/remotion/styles/Typewriter";
+import { PosterSlam } from "@/lib/remotion/styles/PosterSlam";
 
 const Player = dynamic(() => import("@remotion/player").then((m) => m.Player), {
   ssr: false,
@@ -915,9 +920,14 @@ function CarouselInlinePanel({
 // ═══════════════════ REEL INLINE EDITOR ═══════════════════
 
 const REEL_TEMPLATES = [
-  { key: "TikTokHook", label: "Hook + CTA · 10s", duration: 10 },
-  { key: "BeforeAfter", label: "Antes/Después · 8s", duration: 8 },
-  { key: "ViralManifesto60s", label: "Manifesto · 60s", duration: 60 },
+  { key: "TikTokHook", label: "Hook + CTA", duration: 10, kind: "hbc" },
+  { key: "GlitchIntro", label: "Glitch", duration: 10, kind: "hbc" },
+  { key: "StatDrop", label: "Stat Drop", duration: 10, kind: "hbc" },
+  { key: "Typewriter", label: "Typewriter", duration: 10, kind: "hbc" },
+  { key: "PosterSlam", label: "Poster Slam", duration: 10, kind: "hbc" },
+  { key: "SplitScreen", label: "Split Screen", duration: 10, kind: "split" },
+  { key: "BeforeAfter", label: "Antes/Después", duration: 8, kind: "ba" },
+  { key: "ViralManifesto60s", label: "Manifesto 60s", duration: 60, kind: "manifesto" },
 ] as const;
 
 function ReelInlineEditor({
@@ -932,6 +942,11 @@ function ReelInlineEditor({
   const existingProps = (reel?.props || {}) as Record<string, string>;
   const [template, setTemplate] = useState<string>(reel?.template || "TikTokHook");
   const [hook, setHook] = useState(existingProps.hook || set.topic);
+  const [bgImage, setBgImage] = useState(existingProps.bgImage || "");
+  const [leftLabel] = useState(existingProps.leftLabel || "ANTES");
+  const [leftValue, setLeftValue] = useState(existingProps.leftValue || "Rebajar");
+  const [rightLabel] = useState(existingProps.rightLabel || "AHORA");
+  const [rightValue, setRightValue] = useState(existingProps.rightValue || "Diseñar");
   const [body, setBody] = useState(
     existingProps.body || (set.possibleCaptions?.[0] ?? "Experimento real, resultado medible.")
   );
@@ -954,29 +969,57 @@ function ReelInlineEditor({
 
   const getProps = useMemo(() => {
     return () => {
-      if (template === "TikTokHook") {
-        return { hook, body, cta, accentColor, bgColor, textColor };
+      const hbc = { hook, body, cta, accentColor, bgColor, textColor, bgImage: bgImage || undefined };
+      switch (template) {
+        case "TikTokHook":
+          return { hook, body, cta, accentColor, bgColor, textColor };
+        case "GlitchIntro":
+        case "StatDrop":
+        case "Typewriter":
+        case "PosterSlam":
+          return hbc;
+        case "SplitScreen":
+          return {
+            hook,
+            leftLabel,
+            leftValue,
+            rightLabel,
+            rightValue,
+            cta,
+            accentColor,
+            bgColor,
+            textColor,
+            bgImage: bgImage || undefined,
+          };
+        case "BeforeAfter":
+          return {
+            beforeLabel: "ANTES",
+            beforeValue,
+            afterLabel: "AHORA",
+            afterValue,
+            brandName,
+            tagline,
+            accentColor,
+            bgColor,
+          };
+        default:
+          return { brandName, tagline, accentColor, bgColor, textColor };
       }
-      if (template === "BeforeAfter") {
-        return {
-          beforeLabel: "ANTES",
-          beforeValue,
-          afterLabel: "AHORA",
-          afterValue,
-          brandName,
-          tagline,
-          accentColor,
-          bgColor,
-        };
-      }
-      return { brandName, tagline, accentColor, bgColor, textColor };
     };
-  }, [template, hook, body, cta, beforeValue, afterValue, brandName, tagline, accentColor, bgColor, textColor]);
+  }, [template, hook, body, cta, beforeValue, afterValue, brandName, tagline, accentColor, bgColor, textColor, bgImage, leftValue, rightValue, leftLabel, rightLabel]);
 
   const getComponent = () => {
-    if (template === "TikTokHook") return TikTokHook;
-    if (template === "BeforeAfter") return BeforeAfter;
-    return ViralManifesto60s;
+    switch (template) {
+      case "GlitchIntro": return GlitchIntro;
+      case "StatDrop": return StatDrop;
+      case "SplitScreen": return SplitScreen;
+      case "Typewriter": return Typewriter;
+      case "PosterSlam": return PosterSlam;
+      case "BeforeAfter": return BeforeAfter;
+      case "ViralManifesto60s": return ViralManifesto60s;
+      case "TikTokHook":
+      default: return TikTokHook;
+    }
   };
 
   const handleSave = async () => {
@@ -1051,9 +1094,9 @@ function ReelInlineEditor({
       <div className="space-y-4">
         <div>
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 block">
-            Template
+            Template · 8 estilos disponibles
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-4 gap-1.5">
             {REEL_TEMPLATES.map((t) => (
               <button
                 key={t.key}
@@ -1070,7 +1113,7 @@ function ReelInlineEditor({
           </div>
         </div>
 
-        {template === "TikTokHook" ? (
+        {currentTpl.kind === "hbc" ? (
           <div className="space-y-3">
             <Field label="Hook (0-2s)">
               <textarea value={hook} onChange={(e) => setHook(e.target.value)} rows={2} className={fieldCls} />
@@ -1081,8 +1124,36 @@ function ReelInlineEditor({
             <Field label="CTA (6-10s)">
               <input value={cta} onChange={(e) => setCta(e.target.value)} className={fieldCls} />
             </Field>
+            <Field label="Imagen de fondo (opcional · URL)">
+              <input
+                value={bgImage}
+                onChange={(e) => setBgImage(e.target.value)}
+                placeholder="https://picsum.photos/seed/.../1080/1920"
+                className={fieldCls}
+              />
+            </Field>
           </div>
-        ) : template === "BeforeAfter" ? (
+        ) : currentTpl.kind === "split" ? (
+          <div className="space-y-3">
+            <Field label="Hook superior">
+              <input value={hook} onChange={(e) => setHook(e.target.value)} className={fieldCls} />
+            </Field>
+            <div className="grid grid-cols-2 gap-2">
+              <Field label="Panel izquierdo · valor">
+                <input value={leftValue} onChange={(e) => setLeftValue(e.target.value)} className={fieldCls} />
+              </Field>
+              <Field label="Panel derecho · valor">
+                <input value={rightValue} onChange={(e) => setRightValue(e.target.value)} className={fieldCls} />
+              </Field>
+            </div>
+            <Field label="CTA">
+              <input value={cta} onChange={(e) => setCta(e.target.value)} className={fieldCls} />
+            </Field>
+            <Field label="Imagen de fondo (opcional)">
+              <input value={bgImage} onChange={(e) => setBgImage(e.target.value)} className={fieldCls} />
+            </Field>
+          </div>
+        ) : currentTpl.kind === "ba" ? (
           <div className="space-y-3">
             <Field label="Marca / contexto">
               <input value={brandName} onChange={(e) => setBrandName(e.target.value)} className={fieldCls} />
