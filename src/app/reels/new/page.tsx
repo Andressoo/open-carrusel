@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Film, Save, ArrowLeft, Play, Zap, Repeat } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Film, Save, ArrowLeft, Play, Zap, Repeat, Download, ArrowRight } from "lucide-react";
 import { TopBar } from "@/components/layout/TopBar";
 import { Button } from "@/components/ui/button";
 import { TikTokHook } from "@/lib/remotion/TikTokHook";
@@ -56,13 +57,21 @@ const templates: Array<{
 ];
 
 export default function NewReelPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const setId = searchParams.get("set");
+  const topicParam = searchParams.get("topic");
+  const ctaParam = searchParams.get("cta");
+
   const [project, setProject] = useState<Project | null>(null);
   const [template, setTemplate] = useState<TemplateKey>("TikTokHook");
+  const [rendering, setRendering] = useState(false);
+  const [renderUrl, setRenderUrl] = useState<string | null>(null);
 
-  // TikTokHook state
-  const [hook, setHook] = useState("Deja de rebajar.");
+  // TikTokHook state (pre-filled from set params if present)
+  const [hook, setHook] = useState(topicParam || "Deja de rebajar.");
   const [body, setBody] = useState("Empezá a diseñar incentivos que hagan que el cliente vuelva.");
-  const [cta, setCta] = useState("Comentá EXPERIMENTO");
+  const [cta, setCta] = useState(ctaParam ? `Comentá ${ctaParam}` : "Comentá EXPERIMENTO");
 
   // BeforeAfter state
   const [beforeLabel, setBeforeLabel] = useState("ANTES");
@@ -140,11 +149,44 @@ export default function NewReelPage() {
         }),
       });
       if (res.ok) {
+        const reel = await res.json();
+        // Link back to set if arrived from a set
+        if (setId && reel.id) {
+          await fetch("/api/content-sets", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: setId,
+              piece: "reel",
+              updates: { id: reel.id, status: "draft" },
+            }),
+          }).catch(() => {});
+        }
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
       }
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleRender = async () => {
+    setRendering(true);
+    setRenderUrl(null);
+    try {
+      const res = await fetch("/api/render", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          compositionId: template,
+          inputProps: getProps(),
+          reelId: `draft-${template}`,
+        }),
+      });
+      const data = await res.json();
+      if (data.url) setRenderUrl(data.url);
+    } finally {
+      setRendering(false);
     }
   };
 
@@ -344,6 +386,11 @@ export default function NewReelPage() {
           </div>
 
           <div className="pt-4 border-t border-border space-y-2">
+            {setId && (
+              <div className="text-[11px] font-mono text-accent bg-accent/10 border border-accent/20 rounded-lg px-3 py-2 leading-snug">
+                🔗 Linkeado al set · se marca &quot;draft&quot; al guardar
+              </div>
+            )}
             <Button
               onClick={handleSave}
               disabled={saving}
@@ -353,24 +400,51 @@ export default function NewReelPage() {
               <Save className="h-4 w-4" />
               {saving ? "Guardando…" : saved ? "✓ Guardado" : "Guardar reel"}
             </Button>
-            <a
-              href="http://localhost:3333"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
+            <Button
+              onClick={handleRender}
+              disabled={rendering}
+              variant="outline"
+              className="w-full gap-2"
             >
-              <Button variant="outline" className="w-full gap-2">
-                <Play className="h-4 w-4" />
-                Abrir Remotion Studio para render
+              {rendering ? (
+                <>
+                  <span className="inline-block w-3.5 h-3.5 border-2 border-foreground/30 border-t-foreground rounded-full animate-spin" />
+                  Renderizando MP4…
+                </>
+              ) : (
+                <>
+                  <Play className="h-4 w-4" />
+                  Renderizar MP4
+                </>
+              )}
+            </Button>
+            {renderUrl && (
+              <a
+                href={renderUrl}
+                download
+                className="flex items-center justify-center gap-2 w-full px-4 py-2 text-sm font-semibold border border-emerald-500/40 text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 rounded-lg hover:bg-emerald-500/15"
+              >
+                <Download className="h-4 w-4" />
+                Descargar MP4
+              </a>
+            )}
+            {setId && saved && (
+              <Button
+                onClick={() => router.push(`/set/${setId}`)}
+                variant="outline"
+                className="w-full gap-2"
+              >
+                Volver al set
+                <ArrowRight className="h-3.5 w-3.5" />
               </Button>
-            </a>
+            )}
           </div>
 
           <div className="pt-4 border-t border-border">
-            <Link href="/reels">
+            <Link href={setId ? `/set/${setId}` : "/reels"}>
               <Button variant="ghost" size="sm" className="gap-2">
                 <ArrowLeft className="h-3.5 w-3.5" />
-                Volver a reels
+                {setId ? "Volver al set" : "Volver a reels"}
               </Button>
             </Link>
           </div>
