@@ -297,16 +297,37 @@ export default function GeneratePage() {
               )}
 
               {errors.length > 0 && (
-                <div className="border border-destructive/30 bg-destructive/5 rounded-xl p-3">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-destructive mb-1">
+                <div className="border border-destructive/30 bg-destructive/5 rounded-xl p-4 space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-destructive">
                     <AlertCircle className="h-3.5 w-3.5" />
                     Errores ({errors.length})
                   </div>
-                  <ul className="text-[11px] text-destructive/80 space-y-0.5">
+                  {errors.some((e) => (e.message || "").includes("Not logged in") || (e.message || "").includes("/login")) && (
+                    <div className="text-sm bg-background border border-amber-500/40 rounded-lg p-3 space-y-2">
+                      <div className="font-semibold flex items-center gap-1.5">
+                        🔐 Claude CLI no está logueado
+                      </div>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Storu usa Claude CLI en background para generar los sets. Necesitás loguearte una sola vez en tu terminal:
+                      </p>
+                      <ol className="text-xs space-y-1 list-decimal ml-4">
+                        <li>Abrí una terminal (Terminal.app o iTerm)</li>
+                        <li>Corré: <code className="px-1.5 py-0.5 bg-muted rounded font-mono text-[10px]">claude</code></li>
+                        <li>Dentro del chat escribí: <code className="px-1.5 py-0.5 bg-muted rounded font-mono text-[10px]">/login</code></li>
+                        <li>Autenticate con tu cuenta Anthropic (OAuth)</li>
+                        <li>Volvé acá y re-intentá · no cierres la terminal</li>
+                      </ol>
+                      <div className="text-[11px] text-muted-foreground pt-1 border-t border-border">
+                        Si ya lo hiciste, chequeá que{" "}
+                        <code className="font-mono">claude --version</code> corre en tu terminal sin errores.
+                      </div>
+                    </div>
+                  )}
+                  <ul className="text-[11px] text-destructive/80 space-y-0.5 font-mono">
                     {errors.slice(0, 5).map((e, i) => (
                       <li key={i}>
                         · {e.name ? `${e.name}: ` : ""}
-                        {e.message}
+                        {(e.message || "").slice(0, 200)}
                       </li>
                     ))}
                   </ul>

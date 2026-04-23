@@ -90,8 +90,23 @@ export type ContentSet = {
 
   /** Estado del experimento · draft · live · done · archived */
   status?: "draft" | "live" | "done" | "archived";
-  /** Fecha tentativa de publicación */
+  /** Fecha tentativa de publicación (ancla = día D) */
   publishDate?: string;
+  /** Estrategia de publicación · orden óptimo de las 3 piezas
+   *  (calculada por src/lib/publish-order.ts según archetype + goal) */
+  publishOrder?: {
+    strategyCode: "HCR" | "CHR" | "RHC" | "RCH";
+    strategyName: string;
+    rationale: string;
+    timeboxDays: number;
+    steps: Array<{
+      piece: "story" | "carousel" | "reel";
+      dayOffset: number;
+      timeOfDay: string;
+      role: string;
+      reason: string;
+    }>;
+  };
 
   createdAt: string;
   updatedAt: string;

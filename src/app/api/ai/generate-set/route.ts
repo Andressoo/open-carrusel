@@ -1,23 +1,8 @@
 import { NextResponse } from "next/server";
-import { spawn } from "child_process";
-import { getClaudePath } from "@/lib/claude-path";
 import { getProjectContext } from "@/lib/projects";
+import { generateText, AIProviderError } from "@/lib/ai-provider";
 
 export const maxDuration = 120;
-
-/**
- * POST /api/ai/generate-set
- *
- * Takes a single-line idea and returns a fully-filled ContentSet brief:
- *  - topic, goal, archetype, name
- *  - thread, ctaKeyword, anchorBrand
- *  - experimentPurpose, hypothesis, kpis
- *  - sceneDetails, possibleCaptions (5), hashtags (10)
- *  - publishSchedule (story, carousel, reel fechas sugeridas)
- *  - publishStrategy (qué publicar primero, cadencia)
- *
- * Uses Claude CLI with project memory injected. Returns structured JSON.
- */
 
 const SYSTEM = `You are Storu Studio's content strategy engine. When given a merchant's idea, you produce a complete Content Set brief that includes 3 coherent pieces (Story + Carousel + Reel) plus caption variants, hashtags, and publication strategy.
 
@@ -56,7 +41,7 @@ CRITICAL OUTPUT FORMAT: Return ONLY valid JSON matching this exact schema:
       "ctaText": "Slide 5 CTA with keyword"
     },
     "reel": {
-      "template": "TikTokHook|BeforeAfter|ViralManifesto60s",
+      "template": "TikTokHook|BeforeAfter|ViralManifesto60s|GlitchIntro|StatDrop|SplitScreen|Typewriter|PosterSlam",
       "duration": 10,
       "hook": "0-2s hook",
       "body": "2-6s body",
@@ -76,99 +61,47 @@ export async function POST(request: Request) {
     }
 
     const projectContext = await getProjectContext();
-    const fullPrompt = `${projectContext}\n\n---\n\nMERCHANT IDEA:\n${idea}\n\nGenerate the complete ContentSet brief as JSON.`;
+    const userPrompt = `${projectContext}\n\n---\n\nMERCHANT IDEA:\n${idea}\n\nGenerate the complete ContentSet brief as JSON. No prose. JSON only.`;
 
-    const claudePath = getClaudePath();
-
-    const args = [
-      "-p",
-      fullPrompt,
-      "--output-format",
-      "stream-json",
-      "--include-partial-messages",
-      "--verbose",
-      "--append-system-prompt",
-      SYSTEM,
-    ];
-
-    return new Promise<Response>((resolve) => {
-      const child = spawn(claudePath, args);
-      let fullText = "";
-      let resolved = false;
-      const timeout = setTimeout(() => {
-        if (!resolved) {
-          resolved = true;
-          child.kill();
-          resolve(
-            NextResponse.json(
-              { error: "timeout · AI took too long (>90s)" },
-              { status: 504 }
-            )
-          );
-        }
-      }, 90_000);
-
-      child.stdout.on("data", (chunk: Buffer) => {
-        const lines = chunk.toString().split("\n").filter(Boolean);
-        for (const line of lines) {
-          try {
-            const obj = JSON.parse(line);
-            if (obj.type === "content_block_delta" && obj.delta?.text) {
-              fullText += obj.delta.text;
-            } else if (
-              obj.type === "assistant" &&
-              obj.message?.content
-            ) {
-              for (const block of obj.message.content) {
-                if (block.type === "text" && block.text) {
-                  fullText += block.text;
-                }
-              }
-            }
-          } catch {
-            /* ignore non-json lines */
-          }
-        }
-      });
-
-      child.on("close", () => {
-        if (resolved) return;
-        resolved = true;
-        clearTimeout(timeout);
-
-        // Extract JSON from Claude's response · may be wrapped in ```json ... ```
-        let jsonStr = fullText.trim();
-        const codeMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (codeMatch) jsonStr = codeMatch[1].trim();
-        // Try to find {...} if wrapped in text
-        const braceMatch = jsonStr.match(/\{[\s\S]*\}/);
-        if (braceMatch) jsonStr = braceMatch[0];
-
-        try {
-          const parsed = JSON.parse(jsonStr);
-          resolve(NextResponse.json(parsed));
-        } catch (e) {
-          resolve(
-            NextResponse.json(
-              { error: "Could not parse AI response", raw: fullText.slice(0, 500) },
-              { status: 500 }
-            )
-          );
-        }
-      });
-
-      child.on("error", (err) => {
-        if (resolved) return;
-        resolved = true;
-        clearTimeout(timeout);
-        resolve(
-          NextResponse.json(
-            { error: "claude CLI failed: " + err.message },
-            { status: 500 }
-          )
+    let text: string;
+    try {
+      text = await generateText(
+        [{ role: "user", content: userPrompt }],
+        { system: SYSTEM, maxTokens: 4096, temperature: 0.7 }
+      );
+    } catch (e) {
+      if (e instanceof AIProviderError) {
+        return NextResponse.json(
+          {
+            error: e.message,
+            cause: e.cause,
+            fix: e.fixInstructions,
+          },
+          { status: 503 }
         );
-      });
-    });
+      }
+      throw e;
+    }
+
+    // Extract JSON from response (may be wrapped in ```json fence)
+    let jsonStr = text.trim();
+    const codeMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeMatch) jsonStr = codeMatch[1].trim();
+    const braceMatch = jsonStr.match(/\{[\s\S]*\}/);
+    if (braceMatch) jsonStr = braceMatch[0];
+
+    try {
+      const parsed = JSON.parse(jsonStr);
+      return NextResponse.json(parsed);
+    } catch {
+      return NextResponse.json(
+        {
+          error: "Could not parse AI response",
+          raw: text.slice(0, 500),
+        },
+        { status: 500 }
+      );
+    }
   } catch (err) {
     return NextResponse.json(
       { error: (err as Error).message || "Invalid request" },

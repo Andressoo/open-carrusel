@@ -7,6 +7,11 @@ import { readData } from "@/lib/data";
 import { getCarousel } from "@/lib/carousels";
 import { exportAllSlides } from "@/lib/export-slides";
 import type { ContentSet } from "@/types/content-set";
+import {
+  resolvePublishOrder,
+  formatPublishPlan,
+  computeScheduleDates,
+} from "@/lib/publish-order";
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
 
@@ -216,6 +221,12 @@ export async function POST(
     archive.append(captionsText, { name: `captions.txt` });
 
     // ══════ 5 · README · instrucciones de publicación ══════
+    // Resolver orden dinámico según archetype + goal (o usar el persistido)
+    const order =
+      set.publishOrder ||
+      resolvePublishOrder(set.archetype || "", set.goal);
+    const publishPlan = formatPublishPlan(order, set.publishDate?.slice(0, 10));
+
     const readme = [
       `# ${set.name}`,
       ``,
@@ -229,17 +240,13 @@ export async function POST(
       `- \`historia/historia.txt\` — Script plano para copiar a IG`,
       `- \`captions.txt\` — Captions, hashtags, hilo y datos del experimento`,
       ``,
-      `## Orden de publicación sugerido`,
+      publishPlan,
       ``,
-      `1. **Historia** · hoy · teasea la idea, pide interacción con ${set.ctaKeyword || "keyword"}`,
-      `2. **Carrusel** · día siguiente · desarrolla el tema (editorial)`,
-      `3. **Reel** · 48h después · pattern interrupt + CTA con keyword`,
-      ``,
-      `Las 3 piezas usan la misma keyword: **${set.ctaKeyword || "—"}**`,
+      `**Keyword única:** \`${set.ctaKeyword || "—"}\` · aparece en las 3 piezas.`,
       ``,
       `## CTA automatizada`,
       ``,
-      `Configura una respuesta automática por DM cuando alguien comente la palabra \`${set.ctaKeyword || "KEYWORD"}\` en cualquiera de las 3 piezas.`,
+      `Configurá respuesta automática por DM cuando alguien comente la palabra \`${set.ctaKeyword || "KEYWORD"}\` en cualquiera de las 3 piezas.`,
       ``,
       warnings.length ? `\n## ⚠ Advertencias\n\n${warnings.map((w) => `- ${w}`).join("\n")}\n` : "",
       `---`,
