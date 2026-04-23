@@ -86,7 +86,7 @@ export async function exportSlide(
 
   try {
     await page.setViewport({ width, height, deviceScaleFactor: 1 });
-    await page.setContent(fullHtml, { waitUntil: "domcontentloaded", timeout: 15000 });
+    await page.setContent(fullHtml, { waitUntil: "load", timeout: 30000 });
 
     // Wait for fonts to be ready
     await page
@@ -97,9 +97,21 @@ export async function exportSlide(
           ),
         { timeout: 10000 }
       )
-      .catch(() => {
-        // Font loading timeout — proceed with whatever loaded
-      });
+      .catch(() => { /* proceed with whatever loaded */ });
+
+    // Wait for all <img> tags to have loaded (not broken/pending)
+    await page
+      .waitForFunction(
+        () => {
+          const imgs = Array.from(document.querySelectorAll("img"));
+          if (imgs.length === 0) return true;
+          return imgs.every(
+            (img) => img.complete && img.naturalWidth > 0
+          );
+        },
+        { timeout: 20000, polling: 200 }
+      )
+      .catch(() => { /* some images failed · proceed */ });
 
     const screenshotBuffer = await page.screenshot({
       type: "png",

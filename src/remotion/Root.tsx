@@ -14,6 +14,10 @@ import { StatDrop, StatDropSchema } from "../lib/remotion/styles/StatDrop";
 import { SplitScreen, SplitScreenSchema } from "../lib/remotion/styles/SplitScreen";
 import { Typewriter, TypewriterSchema } from "../lib/remotion/styles/Typewriter";
 import { PosterSlam, PosterSlamSchema } from "../lib/remotion/styles/PosterSlam";
+import {
+  LongFormReel45s,
+  LongFormReel45sSchema,
+} from "../lib/remotion/styles/LongFormReel45s";
 
 // Editor Pro Max templates (unified)
 import { TikTokVideo } from "../epm/templates/social/TikTokVideo";
@@ -105,6 +109,15 @@ export const RemotionRoot: React.FC = () => {
           width={1080}
           height={1920}
           defaultProps={PosterSlamSchema}
+        />
+        <Composition
+          id="LongFormReel45s"
+          component={LongFormReel45s}
+          durationInFrames={1350}
+          fps={30}
+          width={1080}
+          height={1920}
+          defaultProps={LongFormReel45sSchema}
         />
       </Folder>
 
