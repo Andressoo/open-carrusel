@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { PaletteProvider } from "@/components/command-palette/PaletteProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,9 +14,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Open Carrusel — AI Carousel Builder",
+  title: "Storu Studio · El laboratorio de contenido del comercio colombiano",
   description:
-    "Open-source AI-powered Instagram carousel builder. Create beautiful carousels with natural language.",
+    "1 idea · 1 set coherente · Historia + Carrusel + Reel listos para publicar. Brief al agente · editor unificado · export a Instagram.",
 };
 
 export default function RootLayout({
@@ -33,7 +34,10 @@ export default function RootLayout({
       <head>
         <meta name="google" content="notranslate" />
       </head>
-      <body className="h-full notranslate" suppressHydrationWarning>{children}</body>
+      <body className="h-full notranslate" suppressHydrationWarning>
+        {children}
+        <PaletteProvider />
+      </body>
     </html>
   );
 }
