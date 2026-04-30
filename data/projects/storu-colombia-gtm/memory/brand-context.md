@@ -4,6 +4,61 @@
 
 ---
 
+## ⚠ TESIS NÚCLEO · NO DESVIAR
+
+**El enemigo de Storu NO es "rebajar".**
+**El enemigo de Storu NO es "Meta pauta".**
+**El enemigo de Storu ES gastar en ALCANCE.**
+
+### Definiciones operativas
+
+- **ALCANCE** = impresiones · pauta para traer desconocidos · followers comprados · vanity metrics · CPM · CPC sin retorno · "que más gente me vea". Esto es lo que el comercio típico hace por default y lo que mata su margen.
+- **CLIENTE** = la persona que YA te compró al menos una vez. Es el activo real. Es donde Storu pone toda la inversión.
+- **INCENTIVO** = mecanismo concreto para que el CLIENTE vuelva (no descuento) · ej: ritual con nombre, lista VIP, combo curado, recompensa por recompra, drop exclusivo.
+- **EXPERIMENTO** = unidad de aprendizaje · 72h · keyword · hipótesis medible · 5 KPIs · sin pauta.
+
+### Tesis exacta (literal)
+
+> **"Invierte en tus clientes, no en alcance."**
+
+### Promesa operativa (literal)
+
+> **"Experimenta con incentivos. Descubre qué hace que vuelvan."**
+
+### Categorías de comercios (3 verticales reales · NO inventar nichos sueltos)
+
+1. **Consumo** · gastronomía, café, bebidas, retail rápido (lo que se consume el mismo día)
+2. **Producto** · moda, joyería, papelería, bienestar físico tangible (lo que se lleva)
+3. **Servicio** · salud, belleza, fitness, hotelería, educación (lo que se reserva o programa)
+
+Los rubros (barbería, panadería, hotel boutique, etc.) son **ejemplos dentro de las 3 verticales**, no categorías per se.
+
+### Cómo se ve el enemigo en cada formato
+
+- **Carrusel:** slide 1 NO ataca "rebajar" · ataca "pagar para que te vea quien no te compra".
+- **Historia:** pregunta NO mide "rebajaste hoy" · mide "¿cuánto gastás trayendo desconocidos vs reactivando clientes?"
+- **Reel:** hook NO dice "deja de rebajar" · dice variantes de "estás invirtiendo en quien no te compra mientras el que sí te ignoras".
+- **Manifiesto:** cierre cita la tesis literal "Invierte en tus clientes, no en alcance" como bandera.
+
+### Anti-patrones de copy a NO repetir
+
+- ✗ "Deja de rebajar" como hook principal (es un síntoma, no la enfermedad)
+- ✗ "Pauta quemada" como ángulo (puede aparecer pero no como tesis)
+- ✗ "Contra Meta Ads" (Meta puede ser canal · el problema es para QUÉ usás Meta)
+- ✗ Comparar con Booking/Rappi como villanos centrales (son ejemplos de alcance prestado)
+- ✗ Frase "no descuentes" sin la alternativa concreta del incentivo
+- ✗ Casos genéricos sin ciudad + nombre + número
+
+### Patrones correctos
+
+- ✓ "Tu cliente vale 4× más que un follower comprado"
+- ✓ "Cada peso en alcance es un peso menos para reactivar al que ya volvió una vez"
+- ✓ "Diseñá un incentivo. Probalo con tus clientes. Medí en 72h. Iterá."
+- ✓ Cita literal de la tesis al final del manifiesto
+- ✓ Vertical clara (Consumo / Producto / Servicio) + rubro como ejemplo
+
+---
+
 ## Identidad
 
 - **Storu** · storu.link · *"Invierte en tus clientes, no en alcance"*
