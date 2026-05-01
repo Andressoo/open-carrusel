@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Auth — Bonus Prize</title>
+  <link rel="stylesheet" href="../colors_and_type.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+  <style>
+    body { margin: 0; background: var(--bp-surface-ground); font-family: var(--bp-font-sans); color: var(--bp-text); min-height: 100vh; }
+    * { box-sizing: border-box; }
+    .stage { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 40px; max-width: 1280px; margin: 0 auto; }
+    .card { background: #fff; border-radius: 20px; padding: 36px 40px; box-shadow: var(--bp-shadow); }
+    .card .brand { display: flex; align-items: center; gap: 10px; margin-bottom: 28px; }
+    .card .brand img { height: 28px; }
+    .card h1 { font-size: 26px; font-weight: 700; margin: 0 0 6px; }
+    .card .sub { color: var(--bp-text-muted); font-size: 14px; margin: 0 0 24px; }
+
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .field label { font-size: 13px; font-weight: 600; }
+    .field .input-wrap { position: relative; }
+    .field input { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--bp-surface-border); font-family: inherit; font-size: 14px; }
+    .field input.with-trail { padding-right: 42px; }
+    .field input:focus { outline: none; border-color: var(--bp-indigo); box-shadow: var(--bp-shadow-focus-indigo); }
+    .field .trail-ico { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--bp-text-muted); cursor: pointer; font-size: 18px; }
+
+    .meter { display: flex; gap: 4px; margin-top: 8px; }
+    .meter .bar { flex: 1; height: 4px; border-radius: 2px; background: var(--bp-surface-200); }
+    .meter .bar.on-weak { background: var(--bp-danger); }
+    .meter .bar.on-mid { background: var(--bp-warn); }
+    .meter .bar.on-strong { background: var(--bp-success); }
+    .meter-label { font-size: 11px; color: var(--bp-text-muted); margin-top: 4px; }
+
+    .row-between { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 18px; }
+    .checkbox { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+    .checkbox .box { width: 16px; height: 16px; border-radius: 6px; border: 1.5px solid var(--bp-surface-border); display: inline-flex; align-items: center; justify-content: center; background: #fff; }
+    .checkbox.checked .box { background: var(--bp-indigo); border-color: var(--bp-indigo); color: #fff; }
+    .checkbox.checked .box i { font-size: 10px; }
+    .link { color: var(--bp-indigo); font-size: 13px; text-decoration: none; font-weight: 500; }
+
+    .btn-primary { width: 100%; background: var(--bp-primary); color: #fff; border: none; padding: 13px; border-radius: 12px; font-weight: 600; font-size: 15px; cursor: pointer; }
+    .btn-primary:hover { background: var(--bp-primary-500); }
+
+    .divider { display: flex; align-items: center; gap: 14px; margin: 22px 0; color: var(--bp-text-muted); font-size: 12px; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--bp-surface-divider); }
+
+    .btn-google { width: 100%; background: #fff; color: var(--bp-text); border: 1px solid var(--bp-surface-border); padding: 12px; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+    .btn-google img { width: 18px; height: 18px; }
+    .btn-google:hover { background: var(--bp-surface-hover); }
+
+    .foot-link { text-align: center; color: var(--bp-text-muted); font-size: 13px; margin-top: 22px; }
+    .foot-link a { color: var(--bp-indigo); font-weight: 600; text-decoration: none; }
+
+    /* Right side: welcome */
+    .welcome { background: linear-gradient(160deg, #131217 0%, #26252d 60%, #3a2a7a 100%); color: #fff; border-radius: 20px; padding: 40px 44px; display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; position: relative; min-height: 540px; }
+    .welcome .eyebrow { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.7; }
+    .welcome h2 { font-family: var(--bp-font-display); font-size: 54px; line-height: 1.02; text-transform: uppercase; margin: 12px 0 18px; }
+    .welcome h2 em { color: var(--bp-yellow-500); font-style: normal; }
+    .welcome p { color: rgba(255,255,255,0.8); margin: 0 0 24px; max-width: 420px; line-height: 1.55; }
+    .welcome .bullets { display: flex; flex-direction: column; gap: 12px; }
+    .welcome .bullet { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; }
+    .welcome .bullet i { color: var(--bp-yellow-500); font-size: 20px; margin-top: 2px; }
+    .welcome .coin-deco { position: absolute; right: -50px; bottom: -40px; width: 240px; height: 240px; background: radial-gradient(circle, rgba(86,53,253,0.45) 0%, transparent 65%); }
+    .welcome img.sticker { position: absolute; right: 30px; bottom: 40px; width: 130px; opacity: 0.95; }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="card">
+      <div class="brand"><img src="../assets/bonuzprizelogo-new.png" alt=""></div>
+      <h1>Crea tu cuenta</h1>
+      <p class="sub">Empieza a acumular Ubicoins con cada experiencia.</p>
+
+      <div class="field">
+        <label>Nombre completo</label>
+        <input placeholder="Laura Ramírez">
+      </div>
+      <div class="field">
+        <label>Correo electrónico</label>
+        <input value="laura.r@correo.com">
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <div class="input-wrap">
+          <input type="password" class="with-trail" value="••••••••••">
+          <i class="trail-ico ph ph-eye"></i>
+        </div>
+        <div class="meter"><div class="bar on-strong"></div><div class="bar on-strong"></div><div class="bar on-strong"></div><div class="bar"></div></div>
+        <div class="meter-label">Fuerza: buena · añade un símbolo para que sea fuerte</div>
+      </div>
+
+      <div class="row-between">
+        <label class="checkbox checked"><span class="box"><i class="ph-bold ph-check"></i></span>Acepto los términos</label>
+        <a class="link" href="#">Leer términos</a>
+      </div>
+
+      <button class="btn-primary">Crear cuenta</button>
+
+      <div class="divider">o continúa con</div>
+      <button class="btn-google"><img src="../assets/google.png" alt="">Continuar con Google</button>
+
+      <div class="foot-link">¿Ya tienes cuenta? <a href="#">Inicia sesión</a></div>
+    </div>
+
+    <div class="welcome">
+      <div>
+        <div class="eyebrow">Bonus Prize</div>
+        <h2>Regala <em>experiencias</em> que se recuerdan</h2>
+        <p>Compra campañas de tus marcas favoritas, acumula Ubicoins y conviértelas en Gift Bonus para quien tú quieras.</p>
+      </div>
+      <div class="bullets">
+        <div class="bullet"><i class="ph-bold ph-check-circle"></i><div>Hasta <b>15% en SmartRewards</b> en cada campaña.</div></div>
+        <div class="bullet"><i class="ph-bold ph-check-circle"></i><div>Regala <b>Gift Bonus</b> a quien tú quieras.</div></div>
+        <div class="bullet"><i class="ph-bold ph-check-circle"></i><div><b>Pago seguro</b> con Wompi, PSE o Nequi.</div></div>
+      </div>
+      <div class="coin-deco"></div>
+      <img class="sticker" src="../assets/bonusprizelogo_sticker.png" alt="">
+    </div>
+  </div>
+</body>
+</html>

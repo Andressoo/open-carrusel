@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Storu & BonusPrize — Colors</title>
+<link rel="stylesheet" href="tokens.css" />
+<style>
+  body { padding: 48px clamp(24px, 5vw, 80px); background: var(--surface-ground); }
+  .page { max-width: 1240px; margin: 0 auto; }
+  .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 32px; flex-wrap: wrap; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--urbinc-violet); }
+  h1 { font-size: 40px; line-height: 1.1; margin: 8px 0 4px; letter-spacing: -0.02em; }
+  .lead { color: var(--text-color-secondary); max-width: 680px; }
+
+  section { margin-bottom: 56px; }
+  h2 { font-size: 20px; margin-bottom: 16px; display: flex; align-items: baseline; gap: 12px; }
+  h2 .num { font-family: var(--font-display); color: var(--urbinc-violet); font-size: 14px; letter-spacing: 0.05em; }
+  .sub { color: var(--text-color-secondary); font-size: 14px; margin-bottom: 20px; max-width: 720px; line-height: 1.6; }
+
+  .grid { display: grid; gap: 16px; }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 900px){ .grid-4 { grid-template-columns: repeat(2,1fr); } .grid-2 { grid-template-columns: 1fr; } }
+
+  .swatch { background: #fff; border: 1px solid var(--surface-border); border-radius: 12px; overflow: hidden; }
+  .swatch .chip { height: 120px; display: flex; align-items: flex-end; padding: 14px 16px; color: #fff; font-weight: 600; font-size: 13px; letter-spacing: 0.02em; }
+  .swatch .chip.dark { color: #fff; }
+  .swatch .chip.light { color: var(--urbinc-ink); }
+  .swatch .meta { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-family: var(--font-mono); color: var(--text-color-secondary); }
+  .swatch .meta .name { font-family: var(--font-sans); font-weight: 600; color: var(--urbinc-ink); }
+
+  .ramp { display: grid; grid-template-columns: repeat(10, 1fr); border-radius: 12px; overflow: hidden; border: 1px solid var(--surface-border); }
+  .ramp .step { aspect-ratio: 1/1.2; display: flex; flex-direction: column; justify-content: space-between; padding: 10px; font-size: 11px; font-family: var(--font-mono); }
+  .ramp .step .n { font-weight: 700; font-family: var(--font-sans); }
+
+  .callout { display: flex; gap: 16px; padding: 16px 20px; border-radius: 12px; background: var(--urbinc-violet-tint); border: 1px solid rgba(86,53,253,.18); color: var(--urbinc-ink); font-size: 14px; line-height: 1.55; }
+  .callout strong { color: var(--urbinc-violet); }
+
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--surface-border); }
+  .pair > div { padding: 32px; font-weight: 600; }
+
+  .status-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .status-card { border-radius: 12px; padding: 16px; border: 1px solid transparent; }
+  .status-card .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; vertical-align: middle; }
+  .status-card .label { font-weight: 600; font-size: 14px; }
+  .status-card .token { display: block; margin-top: 6px; font-size: 11px; font-family: var(--font-mono); color: var(--text-color-secondary); }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="head">
+    <div>
+      <div class="eyebrow">Foundations · 01</div>
+      <h1>Colors</h1>
+      <p class="lead">Two brand colors do most of the work: <b>Violet</b> for accents and interactive surfaces, and <b>Ink</b> for type and the default filled button. Everything else is restraint — a single neutral ramp and four status hues lifted from the live PrimeNG theme.</p>
+    </div>
+  </header>
+
+  <section>
+    <h2><span class="num">1.1</span> Brand</h2>
+    <p class="sub">Violet is the only accent you should reach for by default. Pair it with Ink for contrast; never pair it with another saturated hue in the same component.</p>
+    <div class="grid grid-4">
+      <div class="swatch"><div class="chip dark" style="background:#5635FD">Violet</div><div class="meta"><span class="name">--urbinc-violet</span><span>#5635FD</span></div></div>
+      <div class="swatch"><div class="chip dark" style="background:#131217">Ink</div><div class="meta"><span class="name">--urbinc-ink</span><span>#131217</span></div></div>
+      <div class="swatch"><div class="chip light" style="background:#F8C644">Brand Yellow</div><div class="meta"><span class="name">--brand-yellow</span><span>#F8C644</span></div></div>
+    </div>
+    <div style="height:16px"></div>
+    <div class="pair">
+      <div style="background:#5635FD;color:#fff">Violet on Ink →</div>
+      <div style="background:#131217;color:#fff">Ink on Violet ←</div>
+    </div>
+    <div style="height:12px"></div>
+    <div class="callout"><div>⚑</div><div><strong>Rule of one accent.</strong> Use Violet <em>or</em> Yellow in a single surface — never both at full saturation. Yellow is reserved for BonusPrize and highlight tokens; Pink/Cyan appear only on landing illustrations.</div></div>
+  </section>
+
+  <section>
+    <h2><span class="num">1.2</span> Interactive states</h2>
+    <p class="sub">Violet has three explicit states. Ink gets soft hover/active that read as a 10% lift — do not muddy it with a second hue.</p>
+    <div class="grid grid-4">
+      <div class="swatch"><div class="chip dark" style="background:#5635FD">Default</div><div class="meta"><span class="name">violet</span><span>#5635FD</span></div></div>
+      <div class="swatch"><div class="chip dark" style="background:#6244FE">Hover</div><div class="meta"><span class="name">violet-hover</span><span>#6244FE</span></div></div>
+      <div class="swatch"><div class="chip dark" style="background:#2A02F2">Active</div><div class="meta"><span class="name">violet-active</span><span>#2A02F2</span></div></div>
+      <div class="swatch"><div class="chip light" style="background:rgba(86,53,253,.16);color:#5635FD">Tint 16%</div><div class="meta"><span class="name">violet-tint-strong</span><span>alpha</span></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">1.3</span> Surface ramp</h2>
+    <p class="sub">The app uses this warm-neutral scale for chrome, borders, and text tints. <code>--surface-ground</code> (#EFF3F8) is the dashboard page background.</p>
+    <div class="ramp">
+      <div class="step" style="background:#FAFAFA;color:#212121"><span class="n">50</span><span>#FAFAFA</span></div>
+      <div class="step" style="background:#F5F5F5;color:#212121"><span class="n">100</span><span>#F5F5F5</span></div>
+      <div class="step" style="background:#EEEEEE;color:#212121"><span class="n">200</span><span>#EEEEEE</span></div>
+      <div class="step" style="background:#E0E0E0;color:#212121"><span class="n">300</span><span>#E0E0E0</span></div>
+      <div class="step" style="background:#BDBDBD;color:#212121"><span class="n">400</span><span>#BDBDBD</span></div>
+      <div class="step" style="background:#9E9E9E;color:#fff"><span class="n">500</span><span>#9E9E9E</span></div>
+      <div class="step" style="background:#757575;color:#fff"><span class="n">600</span><span>#757575</span></div>
+      <div class="step" style="background:#616161;color:#fff"><span class="n">700</span><span>#616161</span></div>
+      <div class="step" style="background:#424242;color:#fff"><span class="n">800</span><span>#424242</span></div>
+      <div class="step" style="background:#212121;color:#fff"><span class="n">900</span><span>#212121</span></div>
+    </div>
+    <div style="height:16px"></div>
+    <div class="grid grid-4">
+      <div class="swatch"><div class="chip light" style="background:#EFF3F8">Surface Ground</div><div class="meta"><span class="name">--surface-ground</span><span>#EFF3F8</span></div></div>
+      <div class="swatch"><div class="chip light" style="background:#FFFFFF;border-bottom:1px solid #e5e7eb">Surface Card</div><div class="meta"><span class="name">--surface-card</span><span>#FFFFFF</span></div></div>
+      <div class="swatch"><div class="chip light" style="background:#F6F9FC">Surface Hover</div><div class="meta"><span class="name">--surface-hover</span><span>#F6F9FC</span></div></div>
+      <div class="swatch"><div class="chip light" style="background:#DFE7EF">Surface Border</div><div class="meta"><span class="name">--surface-border</span><span>#DFE7EF</span></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">1.4</span> Status</h2>
+    <p class="sub">One pair per state — a solid fill and a 5%-tint background. Do not invent new status colors; map to these.</p>
+    <div class="status-row">
+      <div class="status-card" style="background:var(--color-success-bg);border-color:rgba(34,197,94,.25)"><span class="dot" style="background:#22C55E"></span><span class="label">Success</span><span class="token">#22C55E · success-bg #F4FCF7</span></div>
+      <div class="status-card" style="background:var(--color-warning-bg);border-color:rgba(234,179,8,.25)"><span class="dot" style="background:#EAB308"></span><span class="label">Warning</span><span class="token">#EAB308 · warning-bg #FEFBF3</span></div>
+      <div class="status-card" style="background:var(--color-danger-bg);border-color:rgba(255,61,50,.25)"><span class="dot" style="background:#FF3D32"></span><span class="label">Danger</span><span class="token">#FF3D32 · danger-bg #FFF5F5</span></div>
+      <div class="status-card" style="background:var(--color-info-bg);border-color:rgba(59,130,246,.25)"><span class="dot" style="background:#3B82F6"></span><span class="label">Info</span><span class="token">#3B82F6 · info-bg #F5F9FF</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">1.5</span> Contrast & usage guardrails</h2>
+    <p class="sub">WCAG-AA body text requires 4.5:1. Our Ink-on-White is 18:1 and Violet-on-White is 5.8:1 (AA for body, AAA for large). Violet on Ink fails AA — never place body copy in that pairing.</p>
+    <div class="grid grid-2">
+      <div class="swatch"><div class="chip" style="background:#fff;color:#131217;border-bottom:1px solid #e5e7eb">Ink on White · 18.1 : 1 ✓ AAA</div><div class="meta"><span class="name">default body</span><span>use everywhere</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#fff;color:#5635FD;border-bottom:1px solid #e5e7eb">Violet on White · 5.82 : 1 ✓ AA</div><div class="meta"><span class="name">links, accents</span><span>AAA for &gt;18px</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#131217;color:#fff">White on Ink · 18.1 : 1 ✓ AAA</div><div class="meta"><span class="name">filled buttons</span><span>ok everywhere</span></div></div>
+      <div class="swatch"><div class="chip" style="background:#5635FD;color:#131217">Ink on Violet · 3.11 : 1 ✗</div><div class="meta"><span class="name">decorative only</span><span>never body copy</span></div></div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

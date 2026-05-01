@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Storu & BonusPrize — Forms</title>
+<link rel="stylesheet" href="../foundations/tokens.css" />
+<style>
+  body { padding: 48px clamp(24px, 5vw, 80px); background: var(--surface-ground); }
+  .page { max-width: 1240px; margin: 0 auto; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--urbinc-violet); }
+  h1.title { font-size: 40px; line-height: 1.1; margin: 8px 0 4px; letter-spacing: -0.02em; }
+  .lead { color: var(--text-color-secondary); max-width: 720px; margin-bottom: 40px; }
+  section { margin-bottom: 56px; }
+  h2.section { font-size: 20px; margin-bottom: 20px; display:flex; align-items:baseline; gap:12px; }
+  h2.section .num { font-family: var(--font-display); color: var(--urbinc-violet); font-size: 14px; letter-spacing: 0.05em; }
+  .sub { color: var(--text-color-secondary); font-size: 14px; margin-bottom: 24px; max-width: 720px; line-height: 1.6; }
+  .panel { background:#fff; border:1px solid var(--surface-border); border-radius:16px; padding:28px; }
+  .panel + .panel { margin-top: 16px; }
+  .label { font-family: var(--font-mono); font-size: 11px; color: var(--text-color-secondary); font-weight:600; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:12px; }
+
+  .field { display: flex; flex-direction: column; gap: 6px; max-width: 360px; margin-bottom: 20px; }
+  .field label { font-size: 14px; font-weight: 500; color: var(--urbinc-ink); }
+  .field .help { font-size: 12px; color: var(--text-color-secondary); }
+  .field .err { font-size: 12px; color: var(--color-danger); display: flex; gap: 6px; align-items: center; }
+
+  .input, .select, .textarea { font-family: var(--font-sans); font-size: 16px; color: var(--urbinc-ink); background:#fff; padding: 12px; border:1px solid #CED4DA; border-radius: 12px; transition: border-color .2s, box-shadow .2s; }
+  .input:hover, .select:hover, .textarea:hover { border-color: var(--urbinc-ink-soft); }
+  .input:focus, .select:focus, .textarea:focus { outline: 0; border-color: var(--urbinc-ink-soft); box-shadow: 0 0 0 0.2rem #F0F0F0; }
+  .input::placeholder { color: #6C757D; }
+  .textarea { min-height: 96px; resize: vertical; }
+  .input.is-error, .textarea.is-error { border-color: var(--color-danger); }
+  .input.is-success { border-color: var(--color-success); }
+
+  .input-with-icon { position:relative; }
+  .input-with-icon .ico { position:absolute; left:12px; top: 50%; transform: translateY(-50%); color:#6C757D; width:18px; height:18px; pointer-events:none; }
+  .input-with-icon .input { padding-left: 40px; }
+
+  .input-group { display:flex; align-items:stretch; }
+  .input-group .addon { background: #E9ECEF; color: #6C757D; padding: 0 14px; display: flex; align-items:center; border: 1px solid #CED4DA; font-size: 14px; }
+  .input-group .addon:first-child { border-top-left-radius: 12px; border-bottom-left-radius: 12px; border-right:0; }
+  .input-group .addon:last-child  { border-top-right-radius: 12px; border-bottom-right-radius: 12px; border-left:0; }
+  .input-group .input { flex:1; border-radius: 0; }
+  .input-group .input:first-child { border-top-left-radius:12px; border-bottom-left-radius:12px; }
+  .input-group .input:last-child  { border-top-right-radius:12px; border-bottom-right-radius:12px; }
+
+  /* Checkbox */
+  .check { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; }
+  .check input { display: none; }
+  .check .box { width: 22px; height: 22px; border: 2px solid #CED4DA; border-radius: 6px; background:#fff; display: grid; place-items: center; transition: background .2s, border-color .2s; }
+  .check input:checked + .box { background: var(--urbinc-ink); border-color: var(--urbinc-ink); }
+  .check .box svg { width: 14px; height: 14px; color: #fff; opacity: 0; }
+  .check input:checked + .box svg { opacity: 1; }
+
+  /* Radio */
+  .radio { display:inline-flex; align-items:center; gap:10px; cursor:pointer; font-size:14px; }
+  .radio input { display:none; }
+  .radio .ring { width:22px; height:22px; border:2px solid #CED4DA; border-radius:50%; background:#fff; display:grid; place-items:center; }
+  .radio .ring::after { content:''; width:12px; height:12px; background:#fff; border-radius:50%; opacity:0; }
+  .radio input:checked + .ring { background: var(--urbinc-ink); border-color: var(--urbinc-ink); }
+  .radio input:checked + .ring::after { opacity:1; }
+
+  /* Switch */
+  .sw { position: relative; width: 48px; height: 28px; display:inline-block; }
+  .sw input { display:none; }
+  .sw .slider { position:absolute; inset:0; background:#CED4DA; border-radius: 30px; transition: background .2s; cursor: pointer; }
+  .sw .slider::before { content:''; position:absolute; top:4px; left:4px; width:20px; height:20px; background:#fff; border-radius:50%; transition: transform .2s; }
+  .sw input:checked + .slider { background: var(--urbinc-ink); }
+  .sw input:checked + .slider::before { transform: translateX(20px); }
+
+  /* Dropdown/Select */
+  .select-wrap { position:relative; }
+  .select-wrap::after { content:''; position:absolute; right:16px; top:50%; width:10px; height:10px; border-right:2px solid #6C757D; border-bottom:2px solid #6C757D; transform: translateY(-70%) rotate(45deg); pointer-events:none; }
+  .select { appearance:none; width:100%; padding-right:36px; }
+
+  /* Chips token */
+  .chip-input { display:flex; gap:8px; flex-wrap:wrap; padding: 8px 12px; border:1px solid #CED4DA; border-radius:12px; background:#fff; min-height:48px; align-items:center; }
+  .chip-input .tok { display:inline-flex; align-items:center; gap:6px; background:#EEF2FF; color:#4338CA; padding:6px 12px; border-radius:999px; font-size:13px; font-weight:500; }
+  .chip-input .tok .x { cursor:pointer; opacity:.7; }
+
+  .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+  @media (max-width: 900px){ .grid-2 { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="eyebrow">Components · 05</div>
+  <h1 class="title">Forms &amp; Inputs</h1>
+  <p class="lead">All inputs share a single skeleton: 12px padding, 12px radius, 1px <code>#CED4DA</code> border. Focus is a soft 0.2rem ring, never a colored outline. Validation reuses the status palette — success and danger only.</p>
+
+  <section>
+    <h2 class="section"><span class="num">5.1</span> Text fields</h2>
+    <div class="panel grid-2">
+      <div>
+        <div class="label">Default · helper · error · success</div>
+        <div class="field"><label for="f1">Nombre de la campaña</label><input id="f1" class="input" placeholder="Ej. Verano 2025" /><span class="help">Visible para tus clientes.</span></div>
+        <div class="field"><label for="f2">Email</label><input id="f2" class="input is-error" value="usuario@" /><span class="err">⚠ Formato de email inválido.</span></div>
+        <div class="field"><label for="f3">Slug</label><input id="f3" class="input is-success" value="storu-beta" /><span class="help" style="color:var(--color-success)">✓ Disponible</span></div>
+        <div class="field"><label for="f4">Disabled</label><input id="f4" class="input" value="Read-only" disabled style="background:#F5F5F5;color:#6C757D" /></div>
+      </div>
+      <div>
+        <div class="label">Icon · group · textarea</div>
+        <div class="field">
+          <label>Buscar</label>
+          <div class="input-with-icon">
+            <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="input" placeholder="Buscar producto o comercio" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Monto</label>
+          <div class="input-group">
+            <span class="addon">MXN</span>
+            <input class="input" value="1,250.00" />
+            <span class="addon">.00</span>
+          </div>
+        </div>
+        <div class="field"><label>Descripción</label><textarea class="textarea" placeholder="Cuenta a tus clientes por qué esto vale la pena…"></textarea></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section"><span class="num">5.2</span> Choice controls</h2>
+    <div class="panel grid-2">
+      <div>
+        <div class="label">Checkbox</div>
+        <label class="check"><input type="checkbox" checked /><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Acepto los Términos y Condiciones</label><br><br>
+        <label class="check"><input type="checkbox" /><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Recibir novedades por email</label>
+
+        <div class="label" style="margin-top:28px">Radio group</div>
+        <label class="radio"><input name="r" type="radio" checked /><span class="ring"></span>Boletería</label>&nbsp;&nbsp;
+        <label class="radio"><input name="r" type="radio" /><span class="ring"></span>Suscripción</label>&nbsp;&nbsp;
+        <label class="radio"><input name="r" type="radio" /><span class="ring"></span>Renta</label>
+
+        <div class="label" style="margin-top:28px">Switch</div>
+        <label class="sw"><input type="checkbox" checked /><span class="slider"></span></label>
+        &nbsp;&nbsp;
+        <label class="sw"><input type="checkbox" /><span class="slider"></span></label>
+      </div>
+      <div>
+        <div class="label">Select / Dropdown</div>
+        <div class="field"><label>País</label><div class="select-wrap"><select class="select"><option>México</option><option>Colombia</option><option>España</option></select></div></div>
+        <div class="label" style="margin-top:20px">Chip input — multiple select</div>
+        <div class="chip-input">
+          <span class="tok">Boletería <span class="x">×</span></span>
+          <span class="tok">Experiencia <span class="x">×</span></span>
+          <span class="tok">Suscripción <span class="x">×</span></span>
+          <span style="color:#6C757D;font-size:14px">Agregar…</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section"><span class="num">5.3</span> Full form — example</h2>
+    <p class="sub">Default density, 24px gap between fields, primary CTA on the right, tertiary cancel to its left.</p>
+    <div class="panel" style="max-width:720px">
+      <div class="field"><label>Nombre del comercio</label><input class="input" value="Café del Parque" /></div>
+      <div class="grid-2">
+        <div class="field"><label>RFC</label><input class="input" placeholder="XAXX010101000" /></div>
+        <div class="field"><label>Categoría</label><div class="select-wrap"><select class="select"><option>Restaurantes y cafés</option></select></div></div>
+      </div>
+      <div class="field"><label>Descripción pública</label><textarea class="textarea">Café de especialidad, tostado local.</textarea></div>
+      <label class="check" style="margin:8px 0 24px"><input type="checkbox" checked /><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Publicar en el directorio de Storu</label>
+      <div style="display:flex;gap:12px;justify-content:flex-end">
+        <button style="background:transparent;border:0;color:var(--urbinc-ink);padding:12px 20px;border-radius:12px;font-family:inherit;font-weight:500;cursor:pointer">Cancelar</button>
+        <button style="background:var(--urbinc-ink);color:#fff;border:0;padding:12px 20px;border-radius:12px;font-family:inherit;font-weight:500;cursor:pointer">Guardar comercio</button>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

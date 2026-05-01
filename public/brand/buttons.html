@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Storu & BonusPrize — Buttons & Badges</title>
+<link rel="stylesheet" href="../foundations/tokens.css" />
+<style>
+  body { padding: 48px clamp(24px, 5vw, 80px); background: var(--surface-ground); }
+  .page { max-width: 1240px; margin: 0 auto; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--urbinc-violet); }
+  h1.title { font-size: 40px; line-height: 1.1; margin: 8px 0 4px; letter-spacing: -0.02em; }
+  .lead { color: var(--text-color-secondary); max-width: 720px; margin-bottom: 40px; }
+  section { margin-bottom: 56px; }
+  h2.section { font-size: 20px; margin-bottom: 20px; display: flex; align-items: baseline; gap: 12px; }
+  h2.section .num { font-family: var(--font-display); color: var(--urbinc-violet); font-size: 14px; letter-spacing: 0.05em; }
+  .sub { color: var(--text-color-secondary); font-size: 14px; margin-bottom: 24px; max-width: 720px; line-height: 1.6; }
+  .panel { background:#fff; border:1px solid var(--surface-border); border-radius:16px; padding:28px; }
+  .panel + .panel { margin-top:16px; }
+  .label { font-family: var(--font-mono); font-size: 11px; color: var(--text-color-secondary); font-weight:600; letter-spacing:0.06em; text-transform:uppercase; margin-bottom:12px; }
+
+  /* Button base — matches PrimeNG theme.css exactly */
+  .btn { font-family: var(--font-sans); font-size: 16px; font-weight: 500; padding: 12px 20px; border-radius: 12px; border: 1px solid transparent; cursor: pointer; transition: background .2s, color .2s, border-color .2s, box-shadow .2s; display: inline-flex; align-items: center; gap: 8px; line-height: 1; }
+  .btn:focus { outline: 0; box-shadow: 0 0 0 0.2rem #F0F0F0; }
+  .btn--primary { background: var(--urbinc-ink); color:#fff; border-color: var(--urbinc-ink); }
+  .btn--primary:hover { background: var(--urbinc-ink-hover); border-color: var(--urbinc-ink-hover); }
+  .btn--primary:active { background: var(--urbinc-ink-hover); }
+  .btn--secondary { background: var(--urbinc-violet); color:#fff; border-color: var(--urbinc-violet); }
+  .btn--secondary:hover { background: var(--urbinc-violet-hover); border-color: var(--urbinc-violet-hover); }
+  .btn--secondary:active { background: var(--urbinc-violet-active); border-color: var(--urbinc-violet-active); }
+  .btn--outlined { background: transparent; color: var(--urbinc-ink); border-color: var(--urbinc-ink); }
+  .btn--outlined:hover { background: var(--urbinc-violet-tint); color: var(--urbinc-ink); }
+  .btn--text { background: transparent; color: var(--urbinc-ink); border-color: transparent; }
+  .btn--text:hover { background: var(--urbinc-violet-tint); }
+  .btn--violet-outlined { background: transparent; color: var(--urbinc-violet); border-color: var(--urbinc-violet); }
+  .btn--violet-outlined:hover { background: var(--urbinc-violet-tint); }
+  .btn--success { background: var(--color-success); border-color: var(--color-success); color:#fff; }
+  .btn--danger  { background: var(--color-danger); border-color: var(--color-danger); color:#fff; }
+  .btn--warning { background: var(--color-warning); border-color: var(--color-warning); color: var(--urbinc-ink); }
+  .btn--disabled, .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+  .btn--sm { font-size: 14px; padding: 10.5px 17.5px; }
+  .btn--lg { font-size: 20px; padding: 15px 25px; }
+  .btn--icon { padding: 12px; width: 48px; justify-content: center; }
+  .btn--pill { border-radius: 999px; }
+  .btn--raised { box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12); }
+  .btn--full { width: 100%; justify-content: center; }
+
+  .row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .row + .label { margin-top: 24px; }
+
+  /* Icon placeholders — inline SVGs, simple and on-brand (no emoji). */
+  .ic { width: 16px; height: 16px; display: inline-block; }
+  .ic svg { width: 100%; height: 100%; display: block; }
+
+  /* Badges */
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 999px; }
+  .badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .badge--violet { background: #EEF2FF; color: #4338CA; }
+  .badge--ink { background: #E9ECEF; color: var(--urbinc-ink); }
+  .badge--success { background: var(--color-success-bg); color: #188A42; }
+  .badge--warning { background: var(--color-warning-bg); color: #A47D06; }
+  .badge--danger { background: var(--color-danger-bg); color: #B32B23; }
+  .badge--info { background: var(--color-info-bg); color: #295BAC; }
+  .badge--outline { background:transparent; border:1px solid var(--surface-border); color: var(--urbinc-ink); }
+
+  /* Anatomy */
+  .anatomy { background:#fff; border:1px solid var(--surface-border); border-radius:16px; padding:40px; display:flex; flex-direction:column; align-items:center; gap:24px; }
+  .anatomy .btn { font-size:20px; padding:16px 24px; }
+  .ann { font-family:var(--font-mono); font-size:11px; color:var(--urbinc-violet); }
+  .ann-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; width:100%; max-width:720px; }
+  .ann-grid div { font-size:12px; color:var(--text-color-secondary); text-align:center; }
+  .ann-grid div strong { display:block; color:var(--urbinc-ink); font-size:13px; margin-bottom:4px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="eyebrow">Components · 04</div>
+  <h1 class="title">Buttons &amp; Badges</h1>
+  <p class="lead">Filled Ink is the workhorse — 90% of primary actions. Violet "secondary" is for the one call-to-action on a page that has to sing (Upgrade, Canjear, Crear campaña). Outlined and Text are for tertiary moves. Status colors are for destructive and affirming confirmations only.</p>
+
+  <section>
+    <h2 class="section"><span class="num">4.1</span> Anatomy</h2>
+    <div class="anatomy">
+      <button class="btn btn--primary"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Confirmar compra</button>
+      <div class="ann-grid">
+        <div><strong>Label</strong>Poppins Medium 16px</div>
+        <div><strong>Padding</strong>12px × 20px</div>
+        <div><strong>Radius</strong>12px</div>
+        <div><strong>Icon gap</strong>8px · 16px icon</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section"><span class="num">4.2</span> Variants</h2>
+    <p class="sub">Five variants. Keep them ordered by weight on a page: primary → secondary → outlined → text → danger.</p>
+    <div class="panel">
+      <div class="label">Primary — Ink · workhorse (p-button default)</div>
+      <div class="row">
+        <button class="btn btn--primary">Button</button>
+        <button class="btn btn--primary"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span>Crear campaña</button>
+        <button class="btn btn--primary">Guardar cambios<span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span></button>
+        <button class="btn btn--primary" disabled>Disabled</button>
+      </div>
+
+      <div class="label">Secondary — Violet · the hero moment (p-button-secondary)</div>
+      <div class="row">
+        <button class="btn btn--secondary">Canjear BonusPrize</button>
+        <button class="btn btn--secondary btn--raised">Upgrade a Pro</button>
+        <button class="btn btn--violet-outlined">Ver más</button>
+      </div>
+
+      <div class="label">Outlined · Text — secondary &amp; tertiary</div>
+      <div class="row">
+        <button class="btn btn--outlined">Outlined</button>
+        <button class="btn btn--outlined btn--sm">Compacto</button>
+        <button class="btn btn--text">Cancelar</button>
+        <button class="btn btn--text" style="color:var(--text-color-secondary)">Omitir</button>
+      </div>
+
+      <div class="label">Status</div>
+      <div class="row">
+        <button class="btn btn--success"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>Aprobar</button>
+        <button class="btn btn--warning">Requiere revisión</button>
+        <button class="btn btn--danger"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg></span>Eliminar</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section"><span class="num">4.3</span> Sizes &amp; shapes</h2>
+    <div class="panel">
+      <div class="label">Sizes — sm · default · lg</div>
+      <div class="row">
+        <button class="btn btn--primary btn--sm">Small</button>
+        <button class="btn btn--primary">Default</button>
+        <button class="btn btn--primary btn--lg">Large</button>
+      </div>
+      <div class="label">Icon only · pill · full-width</div>
+      <div class="row">
+        <button class="btn btn--primary btn--icon" aria-label="Edit"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span></button>
+        <button class="btn btn--primary btn--icon btn--pill" aria-label="Add"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button>
+        <button class="btn btn--secondary btn--pill">Pill action</button>
+      </div>
+      <div class="label">Full-width — forms, mobile</div>
+      <div class="row" style="max-width:360px;display:block">
+        <button class="btn btn--primary btn--full">Continuar</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section"><span class="num">4.4</span> Badges &amp; status chips</h2>
+    <p class="sub">Chips live on cards, rows, and table cells. One chip per item; if you need two, the second should be a numeric or count.</p>
+    <div class="panel">
+      <div class="label">Status — solid fills on tinted backgrounds</div>
+      <div class="row">
+        <span class="badge badge--success"><span class="dot"></span>Activa</span>
+        <span class="badge badge--warning"><span class="dot"></span>Pendiente</span>
+        <span class="badge badge--danger"><span class="dot"></span>Rechazada</span>
+        <span class="badge badge--info"><span class="dot"></span>En revisión</span>
+        <span class="badge badge--ink"><span class="dot"></span>Borrador</span>
+      </div>
+      <div class="label">Brand chips — violet tint (used for selected state in PrimeNG dropdowns/autocomplete)</div>
+      <div class="row">
+        <span class="badge badge--violet">Boletería</span>
+        <span class="badge badge--violet">Suscripción</span>
+        <span class="badge badge--violet">Renta</span>
+        <span class="badge badge--violet">Consumo</span>
+        <span class="badge badge--outline">+ 3 más</span>
+      </div>
+      <div class="label">Numeric — counts &amp; coins</div>
+      <div class="row">
+        <span class="badge badge--ink">128</span>
+        <span class="badge" style="background:var(--urbinc-ink);color:#fff">9,999+</span>
+        <span class="badge" style="background:#FFF7D6;color:#A47D06"><span class="dot" style="background:#F8C644"></span>2,450 coins</span>
+        <span class="badge" style="background:var(--urbinc-violet);color:#fff">PRO</span>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

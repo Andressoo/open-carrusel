@@ -1,0 +1,349 @@
+<!DOCTYPE html><html lang="en"><head>
+
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Storu &amp; BonusPrize — Cards &amp; Data</title>
+<link rel="stylesheet" href="../foundations/tokens.css">
+<style>
+  body { padding: 48px clamp(24px,5vw,80px); background: var(--surface-ground); }
+  .page { max-width: 1240px; margin: 0 auto; }
+  .eyebrow { font-size:12px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--urbinc-violet); }
+  h1.title { font-size:40px; line-height:1.1; margin:8px 0 4px; letter-spacing:-0.02em; }
+  .lead { color: var(--text-color-secondary); max-width: 720px; margin-bottom: 40px; }
+  section { margin-bottom: 56px; }
+  h2.section { font-size:20px; margin-bottom:20px; display:flex; align-items:baseline; gap:12px; }
+  h2.section .num { font-family:var(--font-display); color:var(--urbinc-violet); font-size:14px; letter-spacing:.05em; }
+  .label { font-family:var(--font-mono); font-size:11px; color:var(--text-color-secondary); font-weight:600; letter-spacing:.06em; text-transform:uppercase; margin-bottom:12px; }
+  .sub { color:var(--text-color-secondary); font-size:14px; margin-bottom:24px; max-width:720px; line-height:1.6; }
+  .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
+  .grid-2 { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+  @media (max-width:900px){ .grid-3,.grid-2 { grid-template-columns:1fr; } }
+
+  /* Metric */
+  .metric { background:#fff; border:1px solid var(--surface-border); border-radius:16px; padding:24px; }
+  .metric .k { font-size:12px; color:var(--text-color-secondary); text-transform:uppercase; letter-spacing:.06em; font-weight:600; }
+  .metric .v { font-size:32px; font-weight:700; color:var(--urbinc-ink); margin-top:4px; letter-spacing:-0.01em; }
+  .metric .d { font-size:13px; margin-top:4px; display:inline-flex; align-items:center; gap:4px; }
+  .metric .d.up { color:#188A42; } .metric .d.dn { color:#B32B23; }
+
+  /* Product card */
+  .pc { background:#fff; border:1px solid var(--surface-border); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; }
+  .pc .img { height: 160px; background: linear-gradient(135deg,#5635FD,#131217); position:relative; }
+  .pc .img .tag { position:absolute; top:12px; left:12px; background:#fff; border-radius:999px; padding:4px 10px; font-size:12px; font-weight:600; color:var(--urbinc-violet); }
+  .pc .body { padding:16px; display:flex; flex-direction:column; gap:6px; }
+  .pc .brand { font-size:12px; color:var(--text-color-secondary); text-transform:uppercase; letter-spacing:.06em; font-weight:600; }
+  .pc .title { font-size:16px; font-weight:600; color:var(--urbinc-ink); line-height:1.3; }
+  .pc .foot { display:flex; justify-content:space-between; align-items:center; padding:0 16px 16px; }
+  .pc .price { font-weight:700; font-size:18px; color:var(--urbinc-ink); }
+  .pc .old { font-size:13px; color:var(--text-color-secondary); text-decoration:line-through; margin-left:6px; }
+
+  /* Table */
+  .table { width:100%; background:#fff; border:1px solid var(--surface-border); border-radius:16px; overflow:hidden; border-collapse:collapse; font-size:14px; }
+  .table th { text-align:left; font-weight:600; color:var(--text-color-secondary); padding:14px 20px; background:#F8F9FA; font-size:12px; text-transform:uppercase; letter-spacing:.06em; border-bottom:1px solid var(--surface-border); }
+  .table td { padding:14px 20px; border-bottom:1px solid var(--surface-border); color:var(--urbinc-ink); }
+  .table tr:last-child td { border-bottom:0; }
+  .table tr:hover td { background: var(--surface-hover); }
+  .badge-inline { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:500; padding:3px 10px; border-radius:999px; }
+  .bi-s { background:var(--color-success-bg); color:#188A42; }
+  .bi-w { background:var(--color-warning-bg); color:#A47D06; }
+  .avatar { width:28px; height:28px; border-radius:50%; background:var(--urbinc-violet); color:#fff; display:inline-grid; place-items:center; font-size:11px; font-weight:600; margin-right:8px; vertical-align:middle; }
+
+  /* Alerts */
+  .alert { display:flex; gap:12px; padding:14px 16px; border-radius:12px; font-size:14px; border:1px solid transparent; }
+  .alert .ic { flex-shrink:0; width:20px; height:20px; }
+  .alert.success { background:var(--color-success-bg); color:#188A42; border-color:rgba(34,197,94,.25); }
+  .alert.warning { background:var(--color-warning-bg); color:#A47D06; border-color:rgba(234,179,8,.25); }
+  .alert.danger { background:var(--color-danger-bg); color:#B32B23; border-color:rgba(255,61,50,.25); }
+  .alert.info { background:var(--color-info-bg); color:#295BAC; border-color:rgba(59,130,246,.25); }
+
+  /* Empty state */
+  .empty { background:#fff; border:1px dashed var(--surface-border); border-radius:16px; padding:48px; text-align:center; }
+  .empty .art { width:80px; height:80px; margin:0 auto 16px; border-radius:50%; background:var(--urbinc-violet-tint); display:grid; place-items:center; color:var(--urbinc-violet); }
+  .empty h3 { margin:0 0 6px; font-size:18px; }
+  .empty p { color:var(--text-color-secondary); max-width:360px; margin:0 auto 16px; font-size:14px; }
+
+  /* Tabs */
+  .tabs { display:flex; border-bottom:1px solid var(--surface-border); gap:24px; }
+  .tab { padding:12px 0; font-size:14px; font-weight:500; color:var(--text-color-secondary); cursor:pointer; border-bottom:2px solid transparent; }
+  .tab.active { color:var(--urbinc-ink); border-color:var(--urbinc-ink); font-weight:600; }
+
+  /* Progress */
+  .prog { height:8px; background:#EEF2FF; border-radius:999px; overflow:hidden; }
+  .prog > div { height:100%; background:var(--urbinc-violet); border-radius:999px; }
+
+  /* Avatar group */
+  .ag { display:inline-flex; }
+  .ag .avatar { margin-right:-8px; border:2px solid #fff; }
+
+  /* ─────────── BonusPrize ProductCard (live pattern, 1:1 from urbinc-front) ─────────── */
+  .bp-pc { background:#fff; border:1px solid #e8e8e8a8; border-radius:16px; padding:10px; width:100%; max-width:340px; display:flex; flex-direction:column; gap:10px; transition: box-shadow .3s ease; }
+  .bp-pc:hover { box-shadow: 0px 4px 16px 0px rgba(0,0,0,0.08); }
+  .bp-pc__media { position:relative; aspect-ratio: 4/4.2; border-radius:12px; overflow:hidden; background: linear-gradient(135deg,#c8ceb7,#7a8369); }
+  .bp-pc__media::after { content:""; position:absolute; inset:0; background:radial-gradient(60% 50% at 70% 50%, transparent, rgba(0,0,0,.08)); }
+  .bp-pc__pill { position:absolute; top:16px; left:16px; background:var(--urbinc-ink); color:#fff; font-size:13px; font-weight:600; padding:7px 14px; border-radius:999px; z-index:2; }
+  .bp-pc__actions { position:absolute; top:14px; right:14px; display:flex; gap:8px; z-index:2; }
+  .bp-pc__iconbtn { width:38px; height:38px; border-radius:50%; background:rgba(25,20,18,.45); backdrop-filter:blur(6px); display:grid; place-items:center; color:#fff; border:0; cursor:pointer; }
+  .bp-pc__body { padding: 6px 8px 0; display:flex; flex-direction:column; gap:4px; }
+  .bp-pc__brand { color: var(--text-color-secondary); font-size:15px; }
+  .bp-pc__title { font-size:22px; font-weight:700; color:var(--urbinc-ink); line-height:1.2; margin:2px 0 10px; }
+  .bp-pc__pricerow { display:flex; align-items:center; gap:10px; margin-top:6px; }
+  .bp-pc__price { font-size:22px; font-weight:800; color:var(--urbinc-ink); letter-spacing:-.01em; white-space:nowrap; }
+  .ubichip { display:inline-flex; align-items:center; gap:6px; background:var(--urbinc-ink); color:#fff; padding:5px 10px 5px 5px; border-radius:999px; font-size:13px; font-weight:700; white-space:nowrap; }
+  .ubichip__coin { width:20px; height:20px; border-radius:50%; background:var(--urbinc-violet); display:grid; place-items:center; color:#fff; font-weight:800; font-size:10px; font-family:var(--font-display); }
+  .bp-pc__arrow { margin-left:auto; color: var(--text-color-secondary); display:flex; align-items:center; gap:14px; }
+  .bp-pc__desc { color: var(--text-color-secondary); font-size:14px; margin:0 0 6px; }
+  .bp-pc__meta { display:flex; flex-direction:column; gap:6px; color: var(--text-color-secondary); font-size:14px; margin-top:4px; }
+  .bp-pc__meta span { display:inline-flex; align-items:center; gap:8px; }
+  .bp-pc__meta svg { flex-shrink:0; }
+  .bp-pc__arrow svg { display:block; }
+  .bp-pc__progress { color:var(--urbinc-ink); font-size:14px; font-weight:500; margin-top:2px; }
+  .bp-pc__cta { margin-top:12px; background:#0B0A0E; color:#fff; border:0; padding:16px 20px; border-radius:14px; font-family:inherit; font-size:17px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; cursor:pointer; }
+  .bp-pc__cta-logo { width:26px; height:26px; display:grid; place-items:center; }
+
+  /* Anatomy callouts */
+  .anatomy { display:grid; grid-template-columns: minmax(300px, 360px) 1fr; gap:40px; align-items:start; }
+  @media (max-width:900px){ .anatomy { grid-template-columns:1fr; } }
+  .anatomy-list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:14px; }
+  .anatomy-list li { display:grid; grid-template-columns: 28px 1fr; gap:12px; align-items:start; font-size:14px; line-height:1.5; }
+  .anatomy-list .n { width:22px; height:22px; border-radius:50%; background:var(--urbinc-ink); color:#fff; font-size:11px; font-weight:700; display:grid; place-items:center; }
+  .anatomy-list code { font-family:var(--font-mono); font-size:12px; background:var(--surface-100); padding:1px 6px; border-radius:4px; color:var(--urbinc-violet); }
+
+  /* Token table */
+  .tokentable { width:100%; background:#fff; border:1px solid var(--surface-border); border-radius:16px; border-collapse:collapse; font-size:13px; overflow:hidden; }
+  .tokentable th, .tokentable td { text-align:left; padding:12px 16px; border-bottom:1px solid var(--surface-border); }
+  .tokentable th { background:#F8F9FA; font-size:11px; font-weight:600; color:var(--text-color-secondary); text-transform:uppercase; letter-spacing:.06em; }
+  .tokentable tr:last-child td { border-bottom:0; }
+  .tokentable code { font-family:var(--font-mono); font-size:12px; color:var(--urbinc-violet); }
+
+  /* Ubichip variants */
+  .chip-row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; padding:16px; background:#fff; border:1px solid var(--surface-border); border-radius:16px; }
+  .ubichip--light { background:#fff; color:var(--urbinc-ink); border:1px solid var(--surface-border); }
+  .ubichip--light .ubichip__coin { background:var(--urbinc-violet); }
+  .ubichip--tint { background:var(--urbinc-violet-tint); color:var(--urbinc-violet); }
+  .ubichip--tint .ubichip__coin { background:var(--urbinc-violet); color:#fff; }
+  .ubichip--yellow { background:var(--brand-yellow); color:var(--urbinc-ink); }
+  .ubichip--yellow .ubichip__coin { background:var(--urbinc-ink); color:var(--brand-yellow); }
+
+  /* BonusPrize card (brand feature) */
+  .bp { background:var(--urbinc-ink); color:#fff; border-radius:20px; padding:24px; position:relative; overflow:hidden; }
+  .bp::before { content:''; position:absolute; inset:0; background:radial-gradient(1200px 200px at 0% 100%, rgba(86,53,253,.35), transparent 60%); pointer-events:none; }
+  .bp .kicker { font-family:var(--font-display); font-size:14px; letter-spacing:.08em; text-transform:uppercase; color:var(--brand-yellow); }
+  .bp h3 { font-family:var(--font-display); font-size:40px; line-height:1; margin:8px 0 6px; letter-spacing:.01em; text-transform:uppercase; }
+  .bp p { font-size:14px; color:rgba(255,255,255,.7); margin-bottom:20px; }
+  .bp .coin-row { display:flex; gap:16px; align-items:center; }
+  .bp .coin { width:36px; height:36px; border-radius:50%; background:var(--brand-yellow); display:grid; place-items:center; color:var(--urbinc-ink); font-weight:800; font-size:14px; font-family:var(--font-display); }
+</style>
+</head>
+<body data-cc-id="cc-1" style="cursor: crosshair;">
+<div class="page">
+  <div class="eyebrow">Components · 06</div>
+  <h1 class="title">Cards, Data &amp; Feedback</h1>
+  <p class="lead">Surfaces share one vocabulary: 16px radius, 1px border, white background, flat by default. Elevation only kicks in for overlays. Status colors only appear inside feedback components — never as decoration.</p>
+
+  <section>
+    <h2 class="section"><span class="num">6.1</span> Metric tiles</h2>
+    <div class="grid-3">
+      <div class="metric"><div class="k">Ventas del mes</div><div class="v">$ 128,450</div><div class="d up">▲ 12.4% vs. mes pasado</div></div>
+      <div class="metric"><div class="k">Usuarios activos</div><div class="v">2,438</div><div class="d up">▲ 3.1%</div></div>
+      <div class="metric"><div class="k">Tasa de conversión</div><div class="v">4.8%</div><div class="d dn">▼ 0.4 pp</div></div>
+    </div>
+  </section>
+
+  <section data-cc-id="cc-4">
+    <h2 class="section"><span class="num">6.2</span> BonusPrize ProductCard · live pattern</h2>
+    <p class="sub">1:1 with <code style="font-family:var(--font-mono);font-size:12px;color:var(--urbinc-violet);background:var(--surface-100);padding:2px 6px;border-radius:4px">urbinc-front/shop/components/product-card</code>. Every token below is lifted from the compiled SCSS. This is the surface users spend 80% of their time on — treat it as canon before inventing a new card.</p>
+
+    <div class="anatomy">
+      <!-- reconstructed card -->
+      <div class="bp-pc" data-cc-id="cc-3" style="width: 600px;">
+        <div class="bp-pc__media">
+          <div class="bp-pc__pill">Producto</div>
+          <div class="bp-pc__actions">
+            <button class="bp-pc__iconbtn" aria-label="Compartir"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg></button>
+            <button class="bp-pc__iconbtn" aria-label="Favorito"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></button>
+          </div>
+        </div>
+        <div class="bp-pc__body" data-cc-id="cc-2">
+          <span class="bp-pc__brand">Enohfit</span>
+          <h4 class="bp-pc__title">Set "CATA"</h4>
+          <div class="bp-pc__pricerow">
+            <span class="bp-pc__price">$ 398.000</span>
+            <span class="ubichip"><span class="ubichip__coin">Ʉ</span>12%</span>
+            <span class="bp-pc__arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg></span>
+          </div>
+          <p class="bp-pc__desc">Multiples colores y tallas</p>
+          <div class="bp-pc__meta">
+            <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> Ubicación no disponible</span>
+            <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Falta 1 semana para finalizar</span>
+          </div>
+          <div class="bp-pc__progress">0% completada</div>
+        </div>
+        <button class="bp-pc__cta">
+          <span class="bp-pc__cta-logo"><svg viewBox="0 0 32 32" width="26" height="26"><circle cx="16" cy="16" r="14" fill="#5635FD"></circle><text x="50%" y="56%" text-anchor="middle" dominant-baseline="middle" font-family="Anton, sans-serif" font-size="20" fill="#F8C644">p</text></svg></span>
+          Ver detalles
+        </button>
+      </div>
+
+      <!-- anatomy callouts -->
+      <div>
+        <div class="label">Anatomy</div>
+        <ol class="anatomy-list">
+          <li><span class="n">1</span><div><b>Category pill</b> · solid <code>--urbinc-ink</code> on image. 999px radius, 7/14 padding, 13px/600. Always top-left, 16px inset.</div></li>
+          <li><span class="n">2</span><div><b>Floating actions</b> · 38px circles, <code>rgba(25,20,18,.45)</code> + 6px backdrop blur. Share, favorite, or similar — max 2. Top-right, 14px inset.</div></li>
+          <li><span class="n">3</span><div><b>Media frame</b> · <code>--radius-md 12px</code>, aspect-ratio ≈ 4:4.2, object-cover. Never letterbox; crop tight.</div></li>
+          <li><span class="n">4</span><div><b>Brand line</b> · 15px, <code>--text-color-secondary</code>. Single line. No uppercase.</div></li>
+          <li><span class="n">5</span><div><b>Title</b> · 22px/700, <code>--urbinc-ink</code>, line-height 1.2, max 2 lines (<code>-webkit-line-clamp:2</code>, min-height 30px reserved).</div></li>
+          <li><span class="n">6</span><div><b>Price row</b> · Price 22px/800, letter-spacing −.01em. Currency format <code>$ 398.000</code> (COP, punto-miles, space after symbol). Ubicoin chip follows inline.</div></li>
+          <li><span class="n">7</span><div><b>Meta block</b> · ph-map-pin + ph-clock, 14px, secondary color. Lines stack vertically, 6px gap.</div></li>
+          <li><span class="n">8</span><div><b>Primary CTA</b> · <code>#0B0A0E</code> (not pure black), 14px radius, 16/20 padding, 17px/700. BonusPrize "p" logo glyph sits left of label. Full width.</div></li>
+          <li><span class="n">9</span><div><b>Card shell</b> · <code>#e8e8e8a8</code> 1px border, <code>--radius-lg 16px</code>, 10px inner padding. Hover: <code>0px 4px 16px rgba(0,0,0,.08)</code>, 300ms ease. Never lift by default.</div></li>
+        </ol>
+      </div>
+    </div>
+
+    <h3 style="font-size:14px;margin:40px 0 12px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--text-color-secondary)">Design tokens used</h3>
+    <table class="tokentable">
+      <thead><tr><th>Slot</th><th>Token</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Card background</td><td><code>--surface-0</code></td><td>#FFFFFF</td></tr>
+        <tr><td>Card border</td><td>literal</td><td>#e8e8e8a8 (1px solid)</td></tr>
+        <tr><td>Card radius</td><td><code>--radius-lg</code></td><td>16px</td></tr>
+        <tr><td>Media radius</td><td><code>--radius-md</code></td><td>12px</td></tr>
+        <tr><td>Pill / chip radius</td><td><code>--radius-pill</code></td><td>999px</td></tr>
+        <tr><td>Pill background</td><td><code>--urbinc-ink</code></td><td>#131217</td></tr>
+        <tr><td>Title color / weight</td><td><code>--urbinc-ink</code> · <code>--fw-bold</code></td><td>#131217 · 700</td></tr>
+        <tr><td>Brand + meta color</td><td><code>--text-color-secondary</code></td><td>#6C757D</td></tr>
+        <tr><td>Ubicoin chip accent</td><td><code>--urbinc-violet</code></td><td>#5635FD</td></tr>
+        <tr><td>CTA background</td><td>near-ink</td><td>#0B0A0E (1 step darker than --urbinc-ink for emphasis)</td></tr>
+        <tr><td>CTA glyph accent</td><td><code>--brand-yellow</code> on <code>--urbinc-violet</code></td><td>#F8C644 / #5635FD</td></tr>
+        <tr><td>Hover shadow</td><td>literal</td><td>0 4px 16px rgba(0,0,0,.08)</td></tr>
+        <tr><td>Transition</td><td><code>--dur-slow</code> · <code>--ease-out</code></td><td>300ms cubic-bezier(.22,1,.36,1)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2 class="section"><span class="num">6.3</span> Ubicoin system</h2>
+    <p class="sub">Ubicoins (alias <b>Ubis</b>) are the BonusPrize virtual currency. Always paired with the coin glyph — never just a number or just "%". Three surface variants cover every context.</p>
+
+    <div class="grid-2">
+      <div>
+        <div class="label">Variants</div>
+        <div class="chip-row">
+          <span class="ubichip"><span class="ubichip__coin">Ʉ</span>12%</span>
+          <span class="ubichip ubichip--light"><span class="ubichip__coin">Ʉ</span>+22 Ubicoins</span>
+          <span class="ubichip ubichip--tint"><span class="ubichip__coin">Ʉ</span>1.240 Ubis</span>
+          <span class="ubichip ubichip--yellow"><span class="ubichip__coin">Ʉ</span>+10.000 bono</span>
+        </div>
+        <div class="sub" style="margin-top:16px">
+          <b>Dark</b> — on product imagery or light cards (primary).<br>
+          <b>Light</b> — on dark backgrounds or high-density lists.<br>
+          <b>Tint</b> — inline in paragraphs (e.g. "aplicaste <span class="ubichip ubichip--tint" style="padding:2px 8px 2px 3px"><span class="ubichip__coin" style="width:16px;height:16px;font-size:9px">Ʉ</span>−$12.400</span>").<br>
+          <b>Yellow</b> — only for bonus / promo moments. Rare.
+        </div>
+      </div>
+
+      <div>
+        <div class="label">Formatting rules</div>
+        <table class="tokentable">
+          <tbody>
+            <tr><td>Currency</td><td><code>$ 398.000</code></td><td>COP, punto-miles, space after $</td></tr>
+            <tr><td>Ubicoin amount</td><td><code>1.240 Ubicoins</code></td><td>full spelling in body copy</td></tr>
+            <tr><td>Short form</td><td><code>+22 Ubis</code></td><td>chips, compact lists, pluses signed</td></tr>
+            <tr><td>Cashback %</td><td><code>12%</code></td><td>no decimals; min shown is 5%</td></tr>
+            <tr><td>Glyph</td><td><code>Ʉ</code> / coin.svg</td><td>violet circle, never standalone</td></tr>
+            <tr><td>Discount display</td><td><code>−$12.400</code></td><td>unicode minus U+2212, not hyphen</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section"><span class="num">6.4</span> Other card variants</h2>
+    <div class="grid-3">
+      <div class="pc">
+        <div class="img" style="background:linear-gradient(135deg,#5635FD,#131217)"><span class="tag">Boletería</span></div>
+        <div class="body"><div class="brand">Festival Chapinero</div><div class="title">Noche de cata · Vinos del Valle</div></div>
+        <div class="foot"><span><span class="price">$ 180.000</span><span class="old">$ 220.000</span></span><button style="background:var(--urbinc-ink);color:#fff;border:0;padding:8px 14px;border-radius:999px;font-weight:500;font-size:13px;cursor:pointer">Comprar</button></div>
+      </div>
+      <div class="pc">
+        <div class="img" style="background:linear-gradient(135deg,#F8C644,#EAB308)"><span class="tag">Canje</span></div>
+        <div class="body"><div class="brand">Café del Parque</div><div class="title">2× café de especialidad</div></div>
+        <div class="foot"><span class="ubichip"><span class="ubichip__coin">Ʉ</span>2.450 Ubis</span><button style="background:var(--brand-yellow);color:var(--urbinc-ink);border:0;padding:8px 14px;border-radius:999px;font-weight:600;font-size:13px;cursor:pointer">Canjear</button></div>
+      </div>
+      <div class="pc">
+        <div class="img" style="background:linear-gradient(135deg,var(--urbinc-violet),var(--urbinc-ink))"><span class="tag" style="color:var(--urbinc-violet)">Experiencia</span></div>
+        <div class="body"><div class="brand">Zona G</div><div class="title">Cata + tour de azotea</div></div>
+        <div class="foot"><span class="price">$ 320.000</span><button style="background:var(--urbinc-violet);color:#fff;border:0;padding:8px 14px;border-radius:999px;font-weight:500;font-size:13px;cursor:pointer">Reservar</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section"><span class="num">6.5</span> Data tables</h2>
+    <table class="table">
+      <thead><tr><th>Cliente</th><th>Campaña</th><th>Monto</th><th>Estado</th><th>Fecha</th></tr></thead>
+      <tbody>
+        <tr><td><span class="avatar">MA</span>Mariana Ávila</td><td>Noche de cata</td><td>$ 480</td><td><span class="badge-inline bi-s">● Confirmada</span></td><td>14 Mar · 19:32</td></tr>
+        <tr><td><span class="avatar" style="background:var(--urbinc-violet)">JS</span>Juan Solano</td><td>2× café</td><td>2,450 coins</td><td><span class="badge-inline bi-w">● Pendiente</span></td><td>14 Mar · 19:21</td></tr>
+        <tr><td><span class="avatar" style="background:var(--urbinc-ink)">LR</span>Laura Ruiz</td><td>Renta estudio</td><td>$ 3,200</td><td><span class="badge-inline bi-s">● Confirmada</span></td><td>14 Mar · 18:55</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2 class="section"><span class="num">6.6</span> Alerts, tabs &amp; progress</h2>
+    <div class="grid-2">
+      <div>
+        <div class="label">Alerts (use the status palette)</div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="alert success"><b>Compra confirmada.</b> Te enviamos el boleto a tu email.</div>
+          <div class="alert warning"><b>Tu suscripción expira en 3 días.</b> Renueva para no perder beneficios.</div>
+          <div class="alert danger"><b>No pudimos procesar el pago.</b> Revisa tu método de pago.</div>
+          <div class="alert info"><b>Nueva versión disponible.</b> Refresca para verla.</div>
+        </div>
+      </div>
+      <div>
+        <div class="label">Tabs</div>
+        <div class="tabs"><div class="tab active">General</div><div class="tab">Campañas</div><div class="tab">Facturación</div><div class="tab">Equipo</div></div>
+        <div class="label" style="margin-top:24px">Progreso · objetivo</div>
+        <div class="prog"><div style="width:64%"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-color-secondary);margin-top:6px"><span>$ 64,000 / $ 100,000</span><span>64%</span></div>
+
+        <div class="label" style="margin-top:24px">Equipo</div>
+        <div class="ag">
+          <span class="avatar" style="background:var(--urbinc-violet)">MA</span>
+          <span class="avatar" style="background:var(--brand-yellow-deep)">JS</span>
+          <span class="avatar" style="background:var(--urbinc-ink)">LR</span>
+          <span class="avatar" style="background:#131217">+4</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section"><span class="num">6.7</span> Empty state + BonusPrize card</h2>
+    <div class="grid-2">
+      <div class="empty">
+        <div class="art"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="M3 9h18"></path></svg></div>
+        <h3>Sin campañas todavía</h3>
+        <p>Crea tu primera campaña para empezar a recibir pagos y fidelizar a tus clientes.</p>
+        <button style="background:var(--urbinc-ink);color:#fff;border:0;padding:12px 20px;border-radius:12px;font-family:inherit;font-weight:500;cursor:pointer">Crear campaña</button>
+      </div>
+      <div class="bp">
+        <div class="kicker">BONUSPRIZE</div>
+        <h3>Gana premios reales</h3>
+        <p>Cada peso que gastas te acerca a experiencias únicas.</p>
+        <div class="coin-row">
+          <span class="coin">$</span>
+          <div><div style="font-size:24px;font-weight:700;font-family:var(--font-display);letter-spacing:.02em">2,450 COINS</div><div style="font-size:12px;color:rgba(255,255,255,.6)">Disponibles para canjear</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+
+</body></html>

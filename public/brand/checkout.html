@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Cart &amp; Checkout — Bonus Prize</title>
+  <link rel="stylesheet" href="../colors_and_type.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/bold/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+  <style>
+    body { margin: 0; background: var(--bp-surface-ground); font-family: var(--bp-font-sans); color: var(--bp-text); }
+    * { box-sizing: border-box; }
+
+    .navbar { background: var(--bp-primary); color: #fff; padding: 14px 40px; display: flex; align-items: center; gap: 24px; }
+    .navbar .logo img { height: 32px; }
+    .navbar .step-indicator { display: flex; gap: 22px; margin-left: auto; align-items: center; font-size: 13px; }
+    .navbar .step { display: inline-flex; align-items: center; gap: 8px; color: rgba(255,255,255,0.55); }
+    .navbar .step.active { color: #fff; font-weight: 600; }
+    .navbar .step .dot { width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,0.12); display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+    .navbar .step.active .dot { background: var(--bp-indigo); }
+    .navbar .step.done .dot { background: var(--bp-success); color: #fff; }
+
+    .page { max-width: 1160px; margin: 0 auto; padding: 36px 32px 80px; }
+    h1.page-title { font-size: 28px; font-weight: 700; margin: 0 0 8px; }
+    .page-sub { color: var(--bp-text-muted); margin: 0 0 28px; }
+
+    .grid { display: grid; grid-template-columns: 1.55fr 1fr; gap: 28px; align-items: flex-start; }
+
+    .panel { background: #fff; border-radius: 16px; padding: 22px 24px; box-shadow: var(--bp-shadow); margin-bottom: 20px; }
+    .panel h2 { font-size: 16px; font-weight: 600; margin: 0 0 14px; display: flex; align-items: center; gap: 8px; }
+    .panel h2 .count { background: var(--bp-indigo-tint); color: var(--bp-indigo); font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+
+    .cart-item { display: grid; grid-template-columns: 80px 1fr auto; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--bp-surface-divider); }
+    .cart-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .cart-item .thumb { width: 80px; height: 80px; border-radius: 12px; overflow: hidden; }
+    .cart-item .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .cart-item .cat { color: var(--bp-text-muted); font-size: 12px; }
+    .cart-item .name { font-weight: 600; font-size: 15px; margin: 2px 0 6px; }
+    .cart-item .meta { color: var(--bp-text-muted); font-size: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .cart-item .chip-reward { display: inline-flex; align-items: center; gap: 4px; background: var(--bp-indigo-tint); color: var(--bp-indigo); padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .cart-item .chip-reward img { width: 12px; height: 12px; }
+    .cart-item .right { text-align: right; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; justify-content: space-between; }
+    .cart-item .price { font-weight: 700; font-size: 16px; }
+    .qty-ctrl { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--bp-surface-border); border-radius: 10px; padding: 2px; }
+    .qty-ctrl button { border: none; background: transparent; width: 26px; height: 26px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+    .qty-ctrl button:hover { background: var(--bp-surface-100); }
+    .qty-ctrl span { min-width: 20px; text-align: center; font-weight: 600; font-size: 13px; }
+    .remove-link { background: transparent; border: none; color: var(--bp-text-muted); font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .remove-link:hover { color: var(--bp-sale-red); }
+
+    /* Payment */
+    .pay-methods { display: flex; flex-direction: column; gap: 10px; }
+    .pay-method { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 12px; border: 1.5px solid var(--bp-surface-border); cursor: pointer; transition: all 0.2s ease; }
+    .pay-method.selected { border-color: var(--bp-indigo); background: var(--bp-indigo-50); }
+    .pay-method .radio { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--bp-surface-border); flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
+    .pay-method.selected .radio { border-color: var(--bp-indigo); }
+    .pay-method.selected .radio::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--bp-indigo); }
+    .pay-method .icon { width: 40px; height: 30px; background: var(--bp-surface-100); border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; color: var(--bp-text-muted); }
+    .pay-method .icon i { font-size: 18px; }
+    .pay-method .label { font-weight: 600; font-size: 14px; }
+    .pay-method .sub { color: var(--bp-text-muted); font-size: 12px; }
+
+    /* Form */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .field label { font-size: 13px; font-weight: 600; }
+    .field input, .field select { padding: 12px 14px; border-radius: 12px; border: 1px solid var(--bp-surface-border); font-family: inherit; font-size: 14px; }
+    .field input:focus, .field select:focus { outline: none; border-color: var(--bp-indigo); box-shadow: var(--bp-shadow-focus-indigo); }
+
+    /* Coins toggle */
+    .coin-row { background: linear-gradient(135deg, #f2f0ff 0%, #fff 100%); border: 1px solid var(--bp-indigo-100); border-radius: 14px; padding: 16px 18px; display: flex; align-items: center; gap: 14px; }
+    .coin-row img { width: 32px; height: 32px; }
+    .coin-row .copy { flex: 1; }
+    .coin-row .t { font-weight: 600; font-size: 14px; }
+    .coin-row .s { color: var(--bp-text-muted); font-size: 12px; }
+    .coin-row .switch { width: 42px; height: 24px; background: var(--bp-indigo); border-radius: 999px; position: relative; cursor: pointer; }
+    .coin-row .switch::after { content: ''; position: absolute; top: 3px; right: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: 0.2s; }
+
+    /* Totals */
+    .sticky { position: sticky; top: 24px; }
+    .totals-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; color: var(--bp-text-muted); }
+    .totals-row.neg { color: var(--bp-indigo); }
+    .totals-grand { display: flex; justify-content: space-between; padding: 14px 0 4px; border-top: 1px solid var(--bp-surface-divider); font-size: 18px; font-weight: 700; margin-top: 6px; }
+    .btn-checkout { width: 100%; background: var(--bp-primary); color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: 600; font-size: 15px; cursor: pointer; margin-top: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn-checkout:hover { background: var(--bp-primary-500); }
+    .secure-hint { color: var(--bp-text-muted); font-size: 12px; text-align: center; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+    .promo-row { display: flex; gap: 8px; margin-top: 10px; }
+    .promo-row input { flex: 1; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--bp-surface-border); font-family: inherit; font-size: 13px; }
+    .promo-row button { background: transparent; border: 1px solid var(--bp-primary); color: var(--bp-primary); font-weight: 600; font-size: 13px; padding: 0 14px; border-radius: 10px; cursor: pointer; }
+
+    .rewards-callout { margin-top: 14px; background: var(--bp-surface-ground); border-radius: 12px; padding: 12px 14px; display: flex; gap: 10px; align-items: center; font-size: 13px; }
+    .rewards-callout img { width: 20px; height: 20px; }
+    .rewards-callout b { color: var(--bp-indigo); }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="logo"><img src="../assets/bonus-prize-logo-navbar.png" alt=""></div>
+    <div class="step-indicator">
+      <div class="step done"><span class="dot"><i class="ph-bold ph-check"></i></span>Carrito</div>
+      <div class="step active"><span class="dot">2</span>Datos &amp; pago</div>
+      <div class="step"><span class="dot">3</span>Confirmación</div>
+    </div>
+  </nav>
+
+  <div class="page">
+    <h1 class="page-title">Finaliza tu compra</h1>
+    <p class="page-sub">Revisa tus tickets, elige cómo quieres pagar y acumula Ubicoins en tu próxima experiencia.</p>
+
+    <div class="grid">
+      <div>
+
+        <div class="panel">
+          <h2>Tus tickets <span class="count">2 items</span></h2>
+
+          <div class="cart-item">
+            <div class="thumb"><img src="../assets/sample/masaje.jpeg" alt=""></div>
+            <div>
+              <div class="cat">Spa &amp; Bienestar</div>
+              <div class="name">Masaje relajante para dos · Sofitel</div>
+              <div class="meta">
+                <span><i class="ph ph-map-pin"></i> Zona T · Bogotá</span>
+                <span class="chip-reward"><img src="../assets/coin.svg" alt="">+22 Ubicoins</span>
+              </div>
+            </div>
+            <div class="right">
+              <span class="price">$180.000</span>
+              <div class="qty-ctrl"><button><i class="ph ph-minus"></i></button><span>1</span><button><i class="ph ph-plus"></i></button></div>
+              <button class="remove-link"><i class="ph ph-trash"></i>Quitar</button>
+            </div>
+          </div>
+
+          <div class="cart-item">
+            <div class="thumb"><img src="../assets/sample/yoga.jpeg" alt=""></div>
+            <div>
+              <div class="cat">Bienestar</div>
+              <div class="name">Clase de yoga al aire libre · Pack x2</div>
+              <div class="meta">
+                <span><i class="ph ph-map-pin"></i> Parque Simón Bolívar</span>
+                <span class="chip-reward"><img src="../assets/coin.svg" alt="">+9 Ubicoins</span>
+              </div>
+            </div>
+            <div class="right">
+              <span class="price">$90.000</span>
+              <div class="qty-ctrl"><button><i class="ph ph-minus"></i></button><span>2</span><button><i class="ph ph-plus"></i></button></div>
+              <button class="remove-link"><i class="ph ph-trash"></i>Quitar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Datos personales</h2>
+          <div class="form-row">
+            <div class="field"><label>Nombre</label><input value="Laura"></div>
+            <div class="field"><label>Apellido</label><input value="Ramírez"></div>
+          </div>
+          <div class="field"><label>Correo electrónico</label><input value="laura.r@correo.com"></div>
+          <div class="form-row">
+            <div class="field"><label>Teléfono</label><input value="+57 301 456 7890"></div>
+            <div class="field"><label>Documento</label><input placeholder="CC 1.012.345.678"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Método de pago</h2>
+          <div class="pay-methods">
+            <div class="pay-method selected">
+              <span class="radio"></span>
+              <span class="icon"><i class="ph ph-credit-card"></i></span>
+              <div style="flex:1;"><div class="label">Tarjeta de crédito o débito</div><div class="sub">Visa · Mastercard · Amex — via Wompi</div></div>
+              <i class="ph-bold ph-shield-check" style="color: var(--bp-success); font-size: 18px;"></i>
+            </div>
+            <div class="pay-method">
+              <span class="radio"></span>
+              <span class="icon" style="background: #2DCB73; color: #fff;"><i class="ph ph-bank"></i></span>
+              <div style="flex:1;"><div class="label">PSE</div><div class="sub">Paga desde tu banco</div></div>
+            </div>
+            <div class="pay-method">
+              <span class="radio"></span>
+              <span class="icon" style="background: #FFCC00; color: #111;"><b style="font-size: 11px;">N</b></span>
+              <div style="flex:1;"><div class="label">Nequi</div><div class="sub">Confirma el pago en tu app</div></div>
+            </div>
+          </div>
+
+          <div class="coin-row" style="margin-top: 18px;">
+            <img src="../assets/coin.svg" alt="">
+            <div class="copy">
+              <div class="t">Usar 1.240 Ubicoins</div>
+              <div class="s">Aplica $12.400 de descuento en este pedido</div>
+            </div>
+            <span class="switch"></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right: order summary -->
+      <div class="sticky">
+        <div class="panel">
+          <h2>Resumen del pedido</h2>
+          <div class="totals-row"><span>Subtotal (3 tickets)</span><span>$270.000</span></div>
+          <div class="totals-row neg"><span>Ubicoins aplicadas</span><span>−$12.400</span></div>
+          <div class="totals-row"><span>Cargo por servicio</span><span>$5.900</span></div>
+          <div class="totals-grand"><span>Total a pagar</span><span>$263.500</span></div>
+
+          <div class="rewards-callout">
+            <img src="../assets/coin.svg" alt="">
+            <div>Con esta compra ganarás <b>+31 Ubicoins</b> para tu próxima experiencia.</div>
+          </div>
+
+          <div class="promo-row">
+            <input placeholder="Código promocional">
+            <button>Aplicar</button>
+          </div>
+
+          <button class="btn-checkout"><i class="ph-bold ph-lock"></i>Pagar $263.500</button>
+          <div class="secure-hint"><i class="ph ph-shield-check"></i>Pago seguro · cifrado 256-bit vía Wompi</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

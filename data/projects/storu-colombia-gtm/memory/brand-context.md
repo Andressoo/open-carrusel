@@ -66,15 +66,55 @@ Los rubros (barbería, panadería, hotel boutique, etc.) son **ejemplos dentro d
 - **Tesis:** Storu es laboratorio de ventas donde merchants experimentan con incentivos · Bonus Prize es el marketplace consumer-facing
 - **Target primeras 500 marcas:** Colombia · Barranquilla + Bogotá + Medellín + Cali + Cartagena
 
-## Paleta (estricta)
+## Paleta oficial (estricta · fuente: brand HTMLs)
 
-- **Ink** `#0E0D12` (primary · estructura)
-- **Violet** `#5635FD` (secondary · action)
-- **Yellow** `#F8C644` (accent · reward moments)
-- **Bone** `#F3EFE6` (surface light)
-- **White** `#FFFFFF`
+### Brand · 3 colores que hacen casi todo
 
-No usar coral, teal, rosa, verde · eso diluye la marca.
+| Token | Hex | Rol |
+|---|---|---|
+| `--urbinc-violet` | **`#5635FD`** | Primary accent · interactive surfaces · links · focus rings |
+| `--urbinc-ink` | **`#131217`** | Type · default filled buttons |
+| `--brand-yellow` | **`#F8C644`** | BonusPrize · highlight tokens **únicamente** |
+
+### Violet states
+
+| Estado | Hex |
+|---|---|
+| Default | `#5635FD` |
+| Hover | `#6244FE` |
+| Active | `#2A02F2` |
+| Tint 16% | `rgba(86,53,253,0.16)` |
+
+### Surfaces (warm neutral)
+
+| Token | Hex |
+|---|---|
+| `--surface-ground` | `#EFF3F8` (page bg dashboard) |
+| `--surface-card` | `#FFFFFF` |
+| `--surface-hover` | `#F6F9FC` |
+| `--surface-border` | `#DFE7EF` |
+
+### Status
+
+| Estado | Fill | BG (5%) |
+|---|---|---|
+| Success | `#22C55E` | `#F4FCF7` |
+| Warning | `#EAB308` | `#FEFBF3` |
+| Danger | `#FF3D32` | `#FFF5F5` |
+| Info | `#3B82F6` | `#F5F9FF` |
+
+### Reglas de uso (no negociables)
+
+1. **Una sola paleta de saturación por surface.** Violet **O** Yellow, nunca ambos al máximo en el mismo componente.
+2. **Yellow está reservado** para BonusPrize y highlight tokens · NO es el accent general.
+3. **Pink/Cyan** únicamente en illustrations de landing.
+4. **Default body**: Ink-on-White (18:1 · WCAG AAA).
+5. **Filled buttons**: White-on-Ink (NO yellow-on-ink).
+6. **Violet on Ink fails AA** (3.11:1) · solo decorativo · jamás body copy.
+
+NO usar coral, teal, rosa saturado, verde fuera del status fill · eso diluye la marca.
+
+⚠ **Bug histórico fix:** Ink anterior estaba como `#0E0D12` · el correcto del brand HTML es `#131217`.
 
 ## Tipografía
 
