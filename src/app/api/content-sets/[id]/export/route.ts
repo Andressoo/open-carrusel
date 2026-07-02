@@ -259,6 +259,23 @@ export async function POST(
     archive.finalize();
     const zipBuffer = await done;
 
+    // Instrumentación del north-star: un export = un set que salió del
+    // sistema hacia publicación. Marca exportedAt para medir export rate.
+    try {
+      const { writeData } = await import("@/lib/data");
+      const fresh = await readData<SetFile>("content-sets.json");
+      const target = fresh.sets.find((s) => s.id === id);
+      if (target) {
+        (target as ContentSet & { exportedAt?: string; exportCount?: number }).exportedAt =
+          new Date().toISOString();
+        const t = target as ContentSet & { exportCount?: number };
+        t.exportCount = (t.exportCount || 0) + 1;
+        await writeData("content-sets.json", fresh);
+      }
+    } catch {
+      /* metric write must never break the export */
+    }
+
     return new Response(new Uint8Array(zipBuffer), {
       headers: {
         "Content-Type": "application/zip",

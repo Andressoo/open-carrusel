@@ -59,7 +59,9 @@ export async function generateText(
     ? process.env.OPENROUTER_MODEL_FAST || "anthropic/claude-haiku-4.5"
     : process.env.OPENROUTER_MODEL || "anthropic/claude-sonnet-4.5";
 
-  const freeModel = process.env.OPENROUTER_MODEL_FREE || "meta-llama/llama-3.3-70b-instruct:free";
+  // Nota: los IDs :free rotan · nemotron-3-ultra es el free con tools más
+  // capaz a 2026-07. Si muere, OPENROUTER_MODEL_FREE lo overridea sin deploy.
+  const freeModel = process.env.OPENROUTER_MODEL_FREE || "nvidia/nemotron-3-ultra-550b-a55b:free";
   const autoFallback = process.env.OPENROUTER_AUTO_FALLBACK_FREE !== "false";
 
   const callModel = async (model: string) => {

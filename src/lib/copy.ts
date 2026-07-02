@@ -57,6 +57,7 @@ export const COPY = {
       total: "Sets totales",
       ready: "Listos para publicar",
       scheduled: "Agendados",
+      exported: "Exportados · north star",
       thisProject: "En este espacio",
     },
   },

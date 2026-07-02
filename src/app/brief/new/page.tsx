@@ -21,13 +21,22 @@ import { COPY } from "@/lib/copy";
 
 type Mode = "single" | "batch" | "photo";
 
+type BatchSet = {
+  id: string;
+  name: string;
+  goal?: string;
+  ctaKeyword?: string;
+  anchorBrand?: string;
+};
+
 type AgentEvent =
-  | { kind: "start"; idea: string }
+  | { kind: "start"; idea?: string; count?: number }
   | { kind: "tool"; name: string; args: unknown; id: string }
   | { kind: "tool-result"; id: string; output: string }
   | { kind: "message"; id: string; text: string }
   | { kind: "reasoning"; id: string; text: string }
-  | { kind: "done"; setId?: string; finalText: string }
+  | { kind: "set"; index: number; total: number; set: BatchSet }
+  | { kind: "done"; setId?: string; finalText?: string; emitted?: number; requested?: number }
   | { kind: "error"; message: string; fix?: string };
 
 function BriefContent() {
@@ -125,7 +134,12 @@ function BriefContent() {
   const errorEvent = events.find((e) => e.kind === "error") as
     | Extract<AgentEvent, { kind: "error" }>
     | undefined;
-  const setEvents_count = events.filter((e) => e.kind === "tool-result").length;
+  const batchSets = events.filter((e) => e.kind === "set") as Extract<
+    AgentEvent,
+    { kind: "set" }
+  >[];
+  const setEvents_count =
+    events.filter((e) => e.kind === "tool-result").length + batchSets.length;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -279,6 +293,29 @@ function BriefContent() {
             </div>
           )}
 
+          {/* Batch success state · done sin setId único pero con sets creados */}
+          {doneEvent && !doneEvent.setId && batchSets.length > 0 && (
+            <div className="border border-emerald-500/40 bg-emerald-500/5 rounded-xl p-4 space-y-3 mb-6">
+              <div className="flex items-center gap-2 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                <CheckCircle className="h-4 w-4" />
+                {batchSets.length} sets creados
+                {doneEvent.requested && doneEvent.requested !== batchSets.length && (
+                  <span className="text-xs font-normal text-muted-foreground">
+                    · de {doneEvent.requested} pedidos
+                  </span>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={() => router.push("/")} variant="accent" className="gap-2">
+                  Ver en dashboard <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+                <Button onClick={() => router.push("/calendar")} variant="outline">
+                  Agendar todos
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Success state */}
           {doneEvent?.setId && (
             <div className="border border-emerald-500/40 bg-emerald-500/5 rounded-xl p-4 space-y-3">
@@ -364,6 +401,28 @@ function EventRow({ event }: { event: AgentEvent }) {
       <div className="text-[11px] italic text-muted-foreground px-3 border-l-2 border-border ml-2">
         💭 {event.text}
       </div>
+    );
+  }
+  if (event.kind === "set") {
+    return (
+      <Link
+        href={`/set/${event.set.id}`}
+        className="border border-emerald-500/30 bg-emerald-500/5 rounded-lg p-2.5 flex items-center gap-2 hover:border-emerald-500/60 transition-colors"
+      >
+        <CheckCircle className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="text-xs font-semibold truncate">{event.set.name}</div>
+          <div className="text-[10px] text-muted-foreground flex items-center gap-2">
+            {event.set.goal && <span>{event.set.goal}</span>}
+            {event.set.ctaKeyword && (
+              <span className="font-mono text-accent">{event.set.ctaKeyword}</span>
+            )}
+          </div>
+        </div>
+        <span className="text-[10px] font-mono text-muted-foreground shrink-0">
+          {event.index}/{event.total}
+        </span>
+      </Link>
     );
   }
   return null;

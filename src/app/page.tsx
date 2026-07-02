@@ -21,6 +21,7 @@ type ContentSet = {
   reel: Piece;
   status?: string;
   publishDate?: string;
+  exportedAt?: string;
   createdAt: string;
 };
 
@@ -83,6 +84,7 @@ export default function HomePage() {
     (s) => s.story.id && s.carousel.id && s.reel.id
   ).length;
   const scheduled = sets.filter((s) => s.publishDate).length;
+  const exported = sets.filter((s) => s.exportedAt).length;
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -111,13 +113,9 @@ export default function HomePage() {
           {total > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
               <Stat label={COPY.home.stats.total} value={total} />
-              <Stat label={COPY.home.stats.ready} value={ready} accent />
+              <Stat label={COPY.home.stats.ready} value={ready} />
               <Stat label={COPY.home.stats.scheduled} value={scheduled} />
-              <Stat
-                label={COPY.home.stats.thisProject}
-                value={project?.name || "—"}
-                small
-              />
+              <Stat label={COPY.home.stats.exported} value={exported} accent />
             </div>
           )}
 

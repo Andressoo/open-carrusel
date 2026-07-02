@@ -375,18 +375,115 @@ export function createStoruAgent(apiKey?: string) {
   return new OpenRouter({ apiKey: key });
 }
 
+function isNoCreditsError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return (
+    msg.includes("402") ||
+    msg.toLowerCase().includes("insufficient credits") ||
+    msg.toLowerCase().includes("purchase") // "purchase more at..."
+  );
+}
+
+/**
+ * Modelos free con tool calling · consultados en vivo desde OpenRouter.
+ * Los IDs de modelos free rotan cada pocos meses; hardcodearlos es
+ * exactamente el bug que rompió el flujo antes. Cache 1h en memoria.
+ */
+let freeModelsCache: { models: string[]; at: number } | null = null;
+
+async function getFreeToolModels(): Promise<string[]> {
+  if (freeModelsCache && Date.now() - freeModelsCache.at < 3600_000) {
+    return freeModelsCache.models;
+  }
+  try {
+    const res = await fetch("https://openrouter.ai/api/v1/models");
+    const data = await res.json();
+    const models = (data?.data || [])
+      .filter(
+        (m: { id: string; supported_parameters?: string[]; context_length?: number }) =>
+          m.id.endsWith(":free") &&
+          (m.supported_parameters || []).includes("tools") &&
+          (m.context_length || 0) >= 60_000
+      )
+      .sort(
+        (a: { context_length?: number }, b: { context_length?: number }) =>
+          (b.context_length || 0) - (a.context_length || 0)
+      )
+      .map((m: { id: string }) => m.id)
+      .slice(0, 3);
+    freeModelsCache = { models, at: Date.now() };
+    return models;
+  } catch {
+    return []; // sin red a OpenRouter no hay fallback posible de todos modos
+  }
+}
+
 export async function runStoruAgent(options: AgentRunOptions): Promise<{
   finalText: string;
   setId?: string;
 }> {
   const client = createStoruAgent();
-  const model =
+  const preferredModel =
     process.env.OPENROUTER_MODEL || "anthropic/claude-sonnet-4.5";
 
   const userInput = options.projectContext
     ? `${options.projectContext}\n\n---\n\nIDEA DEL COMERCIO:\n${options.idea}`
     : options.idea;
 
+  // Fallback chain: preferido → env override → top-3 free vivos.
+  // Free-tier devuelve 402 en modelos pagos; sin cadena el flujo
+  // principal (brief → set) muere siempre.
+  const envFree = process.env.OPENROUTER_MODEL_FREE;
+  const liveFree = await getFreeToolModels();
+  const modelChain = [
+    ...new Set([preferredModel, envFree, ...liveFree].filter(Boolean)),
+  ] as string[];
+
+  let lastErr: unknown;
+  const sideEffects = { setId: undefined as string | undefined };
+
+  for (let i = 0; i < modelChain.length; i++) {
+    const model = modelChain[i];
+    try {
+      return await runWithModel(client, model, userInput, options, sideEffects);
+    } catch (err) {
+      lastErr = err;
+      // Reintentar con el próximo modelo solo si es seguro:
+      //  - 402 (sin créditos) siempre se reintenta;
+      //  - otros errores de provider solo si aún no hubo side effects
+      //    (si ya se creó un set, reintentar duplicaría contenido).
+      const retriable = isNoCreditsError(err) || !sideEffects.setId;
+      const canFallback = retriable && i < modelChain.length - 1;
+      if (!canFallback) break;
+      if (options.onEvent) {
+        await options.onEvent({
+          type: "item",
+          data: {
+            type: "message",
+            id: `fallback-${i}`,
+            content: `Modelo ${model} falló (${(err as Error).message?.slice(0, 80)}) · reintentando con ${modelChain[i + 1]}…`,
+          },
+        });
+      }
+    }
+  }
+
+  if (options.onEvent) {
+    await options.onEvent({
+      type: "error",
+      data: { message: (lastErr as Error)?.message || "Agent failed" },
+    });
+  }
+  throw lastErr;
+}
+
+async function runWithModel(
+  client: ReturnType<typeof createStoruAgent>,
+  model: string,
+  userInput: string,
+  options: AgentRunOptions,
+  sideEffects?: { setId?: string }
+): Promise<{ finalText: string; setId?: string }> {
   const result = callModel(client, {
     model,
     input: userInput,
@@ -401,43 +498,30 @@ export async function runStoruAgent(options: AgentRunOptions): Promise<{
   });
 
   let setId: string | undefined;
-  let finalText = "";
 
-  // Stream items and capture tool results
-  try {
-    for await (const item of result.getItemsStream()) {
-      // Emit progress event
-      if (options.onEvent) {
-        await options.onEvent({ type: "item", data: item });
-      }
-
-      // Capture setId from create_content_set result
-      if (
-        item.type === "function_call_output" &&
-        typeof item.output === "string"
-      ) {
-        try {
-          const parsed = JSON.parse(item.output);
-          if (parsed.setId) setId = parsed.setId;
-        } catch {
-          /* ignore */
+  for await (const item of result.getItemsStream()) {
+    if (options.onEvent) {
+      await options.onEvent({ type: "item", data: item });
+    }
+    if (
+      item.type === "function_call_output" &&
+      typeof item.output === "string"
+    ) {
+      try {
+        const parsed = JSON.parse(item.output);
+        if (parsed.setId) {
+          setId = parsed.setId;
+          if (sideEffects) sideEffects.setId = parsed.setId;
         }
+      } catch {
+        /* ignore */
       }
     }
-
-    finalText = await result.getText();
-    if (options.onEvent) {
-      await options.onEvent({ type: "done", data: { finalText, setId } });
-    }
-  } catch (err) {
-    if (options.onEvent) {
-      await options.onEvent({
-        type: "error",
-        data: { message: (err as Error).message },
-      });
-    }
-    throw err;
   }
 
+  const finalText = await result.getText();
+  if (options.onEvent) {
+    await options.onEvent({ type: "done", data: { finalText, setId } });
+  }
   return { finalText, setId };
 }
