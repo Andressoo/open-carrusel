@@ -12,6 +12,7 @@ import {
   Wand2,
   Search,
   Upload,
+  MessageSquare,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProjectSwitcher } from "@/components/layout/ProjectSwitcher";
@@ -159,6 +160,12 @@ function NavTabs() {
       label: COPY.nav.brief,
       icon: <Bot className="h-3.5 w-3.5" />,
       match: (p: string) => p.startsWith("/brief") || p.startsWith("/agent") || p.startsWith("/generate"),
+    },
+    {
+      href: "/chat",
+      label: "Chat",
+      icon: <MessageSquare className="h-3.5 w-3.5" />,
+      match: (p: string) => p.startsWith("/chat"),
     },
     {
       href: "/calendar",

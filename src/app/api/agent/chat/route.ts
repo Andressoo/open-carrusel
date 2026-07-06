@@ -10,19 +10,33 @@
  */
 
 import { NextResponse } from "next/server";
-import { runStoruAgent } from "@/lib/storu-agent";
+import { runStoruAgent, type ChatTurn } from "@/lib/storu-agent";
 import { getProjectContext } from "@/lib/projects";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 600;
 
+const MAX_HISTORY_TURNS = 20;
+
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
-  const { idea } = body as { idea?: string };
+  const { idea, history } = body as { idea?: string; history?: ChatTurn[] };
   if (!idea || idea.length < 5) {
     return NextResponse.json({ error: "idea required" }, { status: 400 });
   }
+
+  const safeHistory: ChatTurn[] = Array.isArray(history)
+    ? history
+        .filter(
+          (t) =>
+            t &&
+            (t.role === "user" || t.role === "assistant") &&
+            typeof t.content === "string"
+        )
+        .slice(-MAX_HISTORY_TURNS)
+        .map((t) => ({ role: t.role, content: t.content.slice(0, 4000) }))
+    : [];
 
   const projectContext = await getProjectContext();
   const encoder = new TextEncoder();
@@ -47,6 +61,7 @@ export async function POST(request: Request) {
         await runStoruAgent({
           idea,
           projectContext,
+          history: safeHistory,
           onEvent: async (e) => {
             if (e.type === "item") {
               // Narrow item types for UI

@@ -18,6 +18,7 @@
 import { OpenRouter } from "@openrouter/sdk";
 import { callModel, tool } from "@openrouter/agent";
 import { z } from "zod";
+import { generateImage, storuStylePrefix } from "@/lib/image-gen";
 
 // ─── Helper: llamar API interna de Storu ───
 async function storuApi<T = unknown>(
@@ -82,6 +83,31 @@ const pickImageTool = tool({
     imageUrl: IMAGE_BANK[rubro] || IMAGE_BANK.default,
     rubro,
   }),
+});
+
+const generateImageTool = tool({
+  name: "generate_image",
+  description:
+    "GENERA una imagen nueva con IA (Gemini image) según un prompt descriptivo. Usala cuando el usuario pida una imagen propia/custom/de marca o cuando el stock de Unsplash no alcance. Cuesta ~$0.03 por imagen. Devuelve URL local /uploads/ai/... lista para usar como hero, reference o bgImage.",
+  inputSchema: z.object({
+    prompt: z
+      .string()
+      .min(10)
+      .describe(
+        "Descripción visual detallada en español o inglés: sujeto, escena, luz, encuadre. SIN texto sobreimpreso."
+      ),
+    context: z
+      .string()
+      .optional()
+      .describe("Contexto del comercio · ej 'panadería artesanal en Cali, mostrador de madera'"),
+  }),
+  execute: async ({ prompt, context }) => {
+    const image = await generateImage({
+      prompt,
+      stylePrefix: storuStylePrefix(context),
+    });
+    return { imageUrl: image.url, model: image.model, generated: true };
+  },
 });
 
 const createSetTool = tool({
@@ -312,9 +338,22 @@ Categorías de comercios (3 verticales reales · NO inventar nichos sueltos):
 
 Los rubros (barbería, panadería, hotel) son ejemplos DENTRO de las 3 verticales.
 
-═══ Pipeline obligatorio (en orden) ═══
+═══ Modo conversacional ═══
 
-1. pick_reference_image    · elegí imagen Unsplash según rubro
+Sos un chat de creación de contenido. Respondé a LO QUE EL USUARIO PIDE:
+- Pide un SET completo → ejecutá el pipeline completo (abajo).
+- Pide solo una IMAGEN → usá generate_image y devolvé la URL. No crees un set que no pidió.
+- Pide ajustar algo de la conversación previa → usá el contexto y ejecutá solo ese cambio.
+- Pregunta o charla → respondé sin llamar tools.
+
+Imágenes:
+- generate_image → imagen NUEVA creada con IA (custom, de marca, escena específica). Cuesta ~$0.03.
+- pick_reference_image → stock Unsplash curado por rubro (gratis, genérico).
+- Para sets: usá generate_image si el usuario pidió imágenes propias · si no, stock alcanza.
+
+═══ Pipeline completo (cuando pide un set · en orden) ═══
+
+1. pick_reference_image o generate_image · imagen hero según lo pedido
 2. create_content_set      · crea set con framework, hipótesis, 5 captions, 10 hashtags, 5 KPIs con targets
 3. create_carousel         · crea carrusel vacío linkeado
 4. create_story            · historia con dinámica apropiada · texto teaser que ABRE LOOP
@@ -363,9 +402,13 @@ Al final respondé con un resumen breve: qué set creaste, con qué framework, q
 
 // ─── Public API ───
 
+export type ChatTurn = { role: "user" | "assistant"; content: string };
+
 export type AgentRunOptions = {
   idea: string;
   projectContext?: string;
+  /** Turnos previos de la conversación · el agente responde en contexto */
+  history?: ChatTurn[];
   onEvent?: (event: { type: string; data: unknown }) => void | Promise<void>;
 };
 
@@ -426,9 +469,17 @@ export async function runStoruAgent(options: AgentRunOptions): Promise<{
   const preferredModel =
     process.env.OPENROUTER_MODEL || "anthropic/claude-sonnet-4.5";
 
-  const userInput = options.projectContext
-    ? `${options.projectContext}\n\n---\n\nIDEA DEL COMERCIO:\n${options.idea}`
-    : options.idea;
+  // Historial multi-turno como transcript en texto · robusto con
+  // cualquier modelo de la cadena (los free varían en soporte de
+  // formatos de mensajes estructurados).
+  const historyBlock =
+    options.history && options.history.length
+      ? `\n\n---\nCONVERSACIÓN PREVIA:\n${options.history
+          .map((t) => `${t.role === "user" ? "USUARIO" : "AGENTE"}: ${t.content}`)
+          .join("\n")}\n---\n`
+      : "";
+
+  const userInput = `${options.projectContext || ""}${historyBlock}\n\n---\n\nMENSAJE ACTUAL DEL COMERCIO:\n${options.idea}`;
 
   // Fallback chain: preferido → env override → top-3 free vivos.
   // Free-tier devuelve 402 en modelos pagos; sin cadena el flujo
@@ -490,6 +541,7 @@ async function runWithModel(
     instructions: STORU_SYSTEM_PROMPT,
     tools: [
       pickImageTool,
+      generateImageTool,
       createSetTool,
       createCarouselTool,
       createStoryTool,
